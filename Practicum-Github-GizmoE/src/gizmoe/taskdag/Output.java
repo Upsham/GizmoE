@@ -1,0 +1,17 @@
+/************************************************************
+ * 
+ * GizmoE Practicum
+ * Output class which will contain packages used to store
+ * outputs in DAG
+ * 
+ * Author: Upsham Dawra(ukd)
+ * Version: 1.0
+ * 
+ * 
+ ************************************************************/
+package gizmoe.taskdag;
+public class Output extends IOBase {
+	
+	String outputgroup;// For output only, is this a error output?
+	
+}
