@@ -1,3 +1,13 @@
+/************************************************************
+ * 
+ * GizmoE Practicum
+ * Actual DAG implementation
+ * 
+ * Author: Upsham Dawra(ukd)
+ * Version: 1.0
+ * 
+ * 
+ ************************************************************/
 package gizmoe.taskdag;
 
 import java.util.ArrayList;
