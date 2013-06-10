@@ -211,6 +211,16 @@ public class MyDag implements MyDagInterface{
 
 	@Override
 	public void emptyDAG() {
+		internalID.clear();
+		internalIOID.clear();
+		capabilityMap.clear();
+		connectMap.clear();
+		ioMap.clear();
+		originalIOID.clear();
+		overallInputMap.clear();
+		overallOutputMap.clear();
+		capabilityID = 0;
+		ioID = 0;
 	}
 
 	
