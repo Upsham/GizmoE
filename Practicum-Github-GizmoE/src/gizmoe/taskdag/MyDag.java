@@ -171,41 +171,82 @@ public class MyDag implements MyDagInterface{
 
 	@Override
 	public String getCapabilityName(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		return cap.name;
 	}
 
 	@Override
 	public Input[] getCapabilityInputs(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		return (Input[]) cap.inputs.toArray();
 	}
 
 	@Override
 	public Output[] getCapabilityOutputs(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		return (Output[]) cap.outputs.toArray();
 	}
 
 	@Override
 	public ArrayList<IOPair> isMappedTo(int ioID) {
-		return null;
+		ioID = internalIOID.get(ioID);
+		ArrayList<IOPair> mappings = new ArrayList<IOPair>(10);
+		for(int i = 0; i<ioMap.get(ioID).size(); i++){
+			if(ioMap.get(ioID).get(i).connected){
+				mappings.add(new IOPair(ioMap.get(ioID).get(i).mode,originalIOID.get(i)));
+			}
+		}
+		return mappings;
 	}
 	
 	@Override
 	public ArrayList<IOPair> isMappingOf(int ioID) {
-		return null;
+		ArrayList<IOPair> mappings = new ArrayList<IOPair>(10);
+		ioID = internalIOID.get(ioID);
+		for(int i = 0; i<ioMap.size(); i++){
+			if(ioMap.get(i).get(ioID).connected){
+				mappings.add(new IOPair(ioMap.get(i).get(ioID).mode,originalIOID.get(i)));
+			}
+		}
+		return mappings;
 	}
 
 	@Override
 	public ArrayList<Integer> nextCapabilities(int id) {
-		return null;
+		id = internalID.get(id);
+		ArrayList<Integer> next = new ArrayList<Integer>();
+		for(int i = 0; i<connectMap.get(id).size(); i++){
+			if(connectMap.get(id).get(i)){
+				next.add(originalIOID.get(i));
+			}
+		}
+		return next;
 	}
 	
 	@Override
 	public ArrayList<Integer> joinToBecome(int id){
-		return null;
+		id = internalID.get(id);
+		ArrayList<Integer> joiners = new ArrayList<Integer>();
+		for(int i = 0; i<connectMap.size(); i++){
+			if(connectMap.get(i).get(id)){
+				joiners.add(originalIOID.get(i));
+			}
+		}
+		return joiners;
 	}
 	
 	@Override
 	public boolean isJoin(int id){
+		id = internalID.get(id);
+		int connectsWithID = 0;
+		for(int i = 0; i<connectMap.size(); i++){
+			if(connectMap.get(i).get(id)){
+				connectsWithID++;
+				if(connectsWithID >= 2){
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
