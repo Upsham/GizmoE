@@ -63,14 +63,14 @@ public interface MyDagInterface {
 	 * @param id identifier of the capability
 	 * @return Array of all inputs
 	 */
-	Input[] getCapabilityInputs(int id);
+	Object[] getCapabilityInputs(int id);
 	
 	/**
 	 * Gets all outputs of a capability stored in the data structure
 	 * @param id identifier of the capability
 	 * @return Array of all outputs
 	 */
-	Output[] getCapabilityOutputs(int id);
+	Object[] getCapabilityOutputs(int id);
 	
 	/**
 	 * Gets the io mappings for a certain input/output

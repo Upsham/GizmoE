@@ -39,12 +39,13 @@ public class MyDag implements MyDagInterface{
 	}
 	
 	private class Capability {
-		ArrayList<Input> inputs;
-		ArrayList<Output> outputs;
-		private String name;
-		
+		ArrayList<Input> inputs = new ArrayList<Input>();
+		ArrayList<Output> outputs = new ArrayList<Output>();
+		public String name;
+		public int id;
 		public Capability(String capability, Input[] inputs,
-				Output[] outputs){
+				Output[] outputs, int id){
+			this.id = id;
 			this.name = capability;
 			for(Input i : inputs){
 				this.inputs.add(i);
@@ -73,7 +74,7 @@ public class MyDag implements MyDagInterface{
 		}else{
 			internalID.put(id, capabilityID);
 		}
-		Capability newCap = new Capability(capability, inputs, outputs);
+		Capability newCap = new Capability(capability, inputs, outputs, id);
 		capabilityMap.put(capabilityID++, newCap);
 		Grow2DArray(connectMap);
 		
@@ -105,6 +106,7 @@ public class MyDag implements MyDagInterface{
 			ArrayList<Boolean> toAdd = new ArrayList<Boolean>();
 			while(rows>=0){
 				toAdd.add(false);
+				rows--;
 			}
 			anyMap.add(toAdd);
 		}
@@ -127,6 +129,7 @@ public class MyDag implements MyDagInterface{
 			ArrayList<IOMapping> toAdd = new ArrayList<IOMapping>();
 			while(rows>=0){
 				toAdd.add(untrue);
+				rows--;
 			}
 			anyMap.add(toAdd);
 		}
@@ -147,8 +150,8 @@ public class MyDag implements MyDagInterface{
 	public boolean mapIO(int firstIoID, int nextIoID, String mode) {
 		IOMapping notFalse = new IOMapping(mode, true);
 		ArrayList<IOMapping> row = ioMap.get(internalIOID.get(firstIoID));
-		if(row != null && row.size() > internalID.get(nextIoID)){
-			row.set(internalID.get(nextIoID), notFalse);
+		if(row != null && row.size() > internalIOID.get(nextIoID)){
+			row.set(internalIOID.get(nextIoID), notFalse);
 			return true;
 		}else{
 			return false;
@@ -178,13 +181,17 @@ public class MyDag implements MyDagInterface{
 	@Override
 	public Input[] getCapabilityInputs(int id) {
 		Capability cap = capabilityMap.get(internalID.get(id));
-		return (Input[]) cap.inputs.toArray();
+		Input[] in = new Input[cap.inputs.size()];
+		cap.inputs.toArray(in);
+		return in;
 	}
 
 	@Override
 	public Output[] getCapabilityOutputs(int id) {
 		Capability cap = capabilityMap.get(internalID.get(id));
-		return (Output[]) cap.outputs.toArray();
+		Output[] out = new Output[cap.outputs.size()];
+		cap.outputs.toArray(out);
+		return out;
 	}
 
 	@Override
@@ -217,7 +224,7 @@ public class MyDag implements MyDagInterface{
 		ArrayList<Integer> next = new ArrayList<Integer>();
 		for(int i = 0; i<connectMap.get(id).size(); i++){
 			if(connectMap.get(id).get(i)){
-				next.add(originalIOID.get(i));
+				next.add(capabilityMap.get(i).id);
 			}
 		}
 		return next;
@@ -229,7 +236,7 @@ public class MyDag implements MyDagInterface{
 		ArrayList<Integer> joiners = new ArrayList<Integer>();
 		for(int i = 0; i<connectMap.size(); i++){
 			if(connectMap.get(i).get(id)){
-				joiners.add(originalIOID.get(i));
+				joiners.add(capabilityMap.get(i).id);
 			}
 		}
 		return joiners;
