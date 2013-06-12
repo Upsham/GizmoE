@@ -10,12 +10,10 @@
  * 
  ************************************************************/
 package gizmoe.taskdag;
-public abstract class IOBase {
+public class IOBase {
 	
-	int id; // Unique identifier
-	String name;// Name of Capability
-	String type;// What data type, ie int, String, float etc
-	String defaultValue;// For input only - is there a default value?
-	String outputgroup;// For output only, is this a error output?
+	public int id; // Unique identifier
+	public String name;// Name of Capability
+	public String type;// What data type, ie int, String, float etc
 
 }

@@ -12,8 +12,8 @@
 package gizmoe.taskdag;
 
 public class IOPair {
-	String mode;
-	int id;
+	public String mode;
+	public int id;
 	
 	public IOPair(String mode, int id){
 		this.mode = mode;

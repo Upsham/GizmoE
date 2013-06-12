@@ -39,12 +39,13 @@ public class MyDag implements MyDagInterface{
 	}
 	
 	private class Capability {
-		ArrayList<Input> inputs;
-		ArrayList<Output> outputs;
-		private String name;
-		
+		ArrayList<Input> inputs = new ArrayList<Input>();
+		ArrayList<Output> outputs = new ArrayList<Output>();
+		public String name;
+		public int id;
 		public Capability(String capability, Input[] inputs,
-				Output[] outputs){
+				Output[] outputs, int id){
+			this.id = id;
 			this.name = capability;
 			for(Input i : inputs){
 				this.inputs.add(i);
@@ -73,7 +74,7 @@ public class MyDag implements MyDagInterface{
 		}else{
 			internalID.put(id, capabilityID);
 		}
-		Capability newCap = new Capability(capability, inputs, outputs);
+		Capability newCap = new Capability(capability, inputs, outputs, id);
 		capabilityMap.put(capabilityID++, newCap);
 		Grow2DArray(connectMap);
 		
@@ -105,6 +106,7 @@ public class MyDag implements MyDagInterface{
 			ArrayList<Boolean> toAdd = new ArrayList<Boolean>();
 			while(rows>=0){
 				toAdd.add(false);
+				rows--;
 			}
 			anyMap.add(toAdd);
 		}
@@ -127,6 +129,7 @@ public class MyDag implements MyDagInterface{
 			ArrayList<IOMapping> toAdd = new ArrayList<IOMapping>();
 			while(rows>=0){
 				toAdd.add(untrue);
+				rows--;
 			}
 			anyMap.add(toAdd);
 		}
@@ -147,8 +150,8 @@ public class MyDag implements MyDagInterface{
 	public boolean mapIO(int firstIoID, int nextIoID, String mode) {
 		IOMapping notFalse = new IOMapping(mode, true);
 		ArrayList<IOMapping> row = ioMap.get(internalIOID.get(firstIoID));
-		if(row != null && row.size() > internalID.get(nextIoID)){
-			row.set(internalID.get(nextIoID), notFalse);
+		if(row != null && row.size() > internalIOID.get(nextIoID)){
+			row.set(internalIOID.get(nextIoID), notFalse);
 			return true;
 		}else{
 			return false;
@@ -171,41 +174,86 @@ public class MyDag implements MyDagInterface{
 
 	@Override
 	public String getCapabilityName(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		return cap.name;
 	}
 
 	@Override
 	public Input[] getCapabilityInputs(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		Input[] in = new Input[cap.inputs.size()];
+		cap.inputs.toArray(in);
+		return in;
 	}
 
 	@Override
 	public Output[] getCapabilityOutputs(int id) {
-		return null;
+		Capability cap = capabilityMap.get(internalID.get(id));
+		Output[] out = new Output[cap.outputs.size()];
+		cap.outputs.toArray(out);
+		return out;
 	}
 
 	@Override
 	public ArrayList<IOPair> isMappedTo(int ioID) {
-		return null;
+		ioID = internalIOID.get(ioID);
+		ArrayList<IOPair> mappings = new ArrayList<IOPair>(10);
+		for(int i = 0; i<ioMap.get(ioID).size(); i++){
+			if(ioMap.get(ioID).get(i).connected){
+				mappings.add(new IOPair(ioMap.get(ioID).get(i).mode,originalIOID.get(i)));
+			}
+		}
+		return mappings;
 	}
 	
 	@Override
 	public ArrayList<IOPair> isMappingOf(int ioID) {
-		return null;
+		ArrayList<IOPair> mappings = new ArrayList<IOPair>(10);
+		ioID = internalIOID.get(ioID);
+		for(int i = 0; i<ioMap.size(); i++){
+			if(ioMap.get(i).get(ioID).connected){
+				mappings.add(new IOPair(ioMap.get(i).get(ioID).mode,originalIOID.get(i)));
+			}
+		}
+		return mappings;
 	}
 
 	@Override
 	public ArrayList<Integer> nextCapabilities(int id) {
-		return null;
+		id = internalID.get(id);
+		ArrayList<Integer> next = new ArrayList<Integer>();
+		for(int i = 0; i<connectMap.get(id).size(); i++){
+			if(connectMap.get(id).get(i)){
+				next.add(capabilityMap.get(i).id);
+			}
+		}
+		return next;
 	}
 	
 	@Override
 	public ArrayList<Integer> joinToBecome(int id){
-		return null;
+		id = internalID.get(id);
+		ArrayList<Integer> joiners = new ArrayList<Integer>();
+		for(int i = 0; i<connectMap.size(); i++){
+			if(connectMap.get(i).get(id)){
+				joiners.add(capabilityMap.get(i).id);
+			}
+		}
+		return joiners;
 	}
 	
 	@Override
 	public boolean isJoin(int id){
+		id = internalID.get(id);
+		int connectsWithID = 0;
+		for(int i = 0; i<connectMap.size(); i++){
+			if(connectMap.get(i).get(id)){
+				connectsWithID++;
+				if(connectsWithID >= 2){
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
