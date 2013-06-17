@@ -110,6 +110,20 @@ public interface MyDagInterface {
 	 */
 	ArrayList<IOPair> isMappingOf(int ioID);
 	
+	
+	/**
+	 * Set a certain capability as the starting capability
+	 * @param id the id of the capability which is the starting capability
+	 * @return success/failure
+	 */
+	public boolean setStartCapability(int id);
+	
+	/**
+	 * Returns the starting capabilities 
+	 * @return An arraylist containing IDs of starting capabilities
+	 */
+	public ArrayList<Integer> startCapabilities();
+	
 	/**
 	 * Clear all the data in the data structures
 	 * @return success/failure
