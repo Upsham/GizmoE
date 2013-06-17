@@ -235,7 +235,7 @@ public class MyDag implements MyDagInterface{
 		id = internalID.get(id);
 		ArrayList<Integer> joiners = new ArrayList<Integer>();
 		for(int i = 0; i<connectMap.size(); i++){
-			if(connectMap.get(i).get(id)){
+			if(connectMap.get(i).get(id) && id != i){
 				joiners.add(capabilityMap.get(i).id);
 			}
 		}
@@ -247,7 +247,7 @@ public class MyDag implements MyDagInterface{
 		id = internalID.get(id);
 		int connectsWithID = 0;
 		for(int i = 0; i<connectMap.size(); i++){
-			if(connectMap.get(i).get(id)){
+			if(connectMap.get(i).get(id) && id!=i){
 				connectsWithID++;
 				if(connectsWithID >= 2){
 					return true;
@@ -255,6 +255,25 @@ public class MyDag implements MyDagInterface{
 			}
 		}
 		return false;
+	}
+	
+	public ArrayList<Integer> startCapabilities(){
+		ArrayList<Integer> starters = new ArrayList<Integer>();
+		for(int i = 0; i<connectMap.size(); i++){
+			if(connectMap.get(i).get(i)){
+				starters.add(capabilityMap.get(i).id);
+			}
+		}
+		return starters;
+	}
+	
+	public boolean setStartCapability(int id){
+		if(internalID.containsKey(id)){
+			connect(id,id);
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	@Override

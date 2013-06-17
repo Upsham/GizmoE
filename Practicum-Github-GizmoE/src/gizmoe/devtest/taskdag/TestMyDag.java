@@ -41,7 +41,7 @@ public class TestMyDag {
 		mapIOPrint(testdag, false, 5);
 		mapIOPrint(testdag, true, 6);
 		mapIOPrint(testdag, true, 8);
-		
+
 		testdag.emptyDAG();
 		ioid = 1;
 		capabilityid = 1;
