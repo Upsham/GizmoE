@@ -21,6 +21,8 @@
 	  <output id="6" name="o3" type="int"/>
 	  <output id="7" name="o4" type="int"/>
 	  <output id="8" name="o5" type="int"/>
+	  <output id="30" name="o6" type="int"/>
+	  
 	</outputGroup>
   </outputs>
   
@@ -43,7 +45,7 @@
      <!-- separate section that maps the inputs and outputs for this task.
           This is how data is connected in the workflow -->	 
      <mapping mode="copy">
-	    <source id = "1"/>
+	    <source name = "i1"/>
 		<target ref="9" name="i1"/>
 	 </mapping>
 	 <mapping mode="pipe">
@@ -55,7 +57,7 @@
 		<target ref="12" name="i1" />
 	 </mapping>
 	 <mapping mode="copy">
-	    <source id = "2"/>
+	    <source name = "i2"/>
 		<target ref="10" name="i1"/>
 	 </mapping>
 	 <mapping mode="pipe">
@@ -64,31 +66,31 @@
 	 </mapping>
 	 <mapping mode="copy">
 	    <source ref="12" name="o1"/>
-		<target id = "4" />
+		<target name = "o1" />
 	 </mapping>
 	 <mapping mode="copy">
 	    <source ref="12" name="o2"/>
-		<target id = "5" />
+		<target name = "o2" />
 	 </mapping>
-	 <mapping mode="user"> <!-- of interest-->
+	 <mapping mode="user">
         <prompt string="Ask for this" />
 	 	<target ref="12" name="i3" />
 	 </mapping>
-	 <mapping mode="error"> <!-- of interest-->
+	 <mapping mode="error"> 
 	 	<source ref="9" name="o2"/>
-	 	<target id="6" />
+	 	<target name="o3" />
 	 </mapping>
 	 <mapping mode="error">
 	 	<source ref="10" name="o2"/>
-	 	<target id="6" />
+	 	<target name="o4" />
 	 </mapping>
 	 <mapping mode="error">
 	 	<source ref="11" name="o2"/>
-	 	<target id="7" />
+	 	<target name="o5" />
 	 </mapping>
 	 <mapping mode="error">
 	 	<source ref="12" name="o3"/>
-	 	<target id="8" />
+	 	<target name="o6" />
 	 </mapping>
 	 
   </data>

@@ -33,7 +33,7 @@
      <!-- separate section that maps the inputs and outputs for this task.
           This is how data is connected in the workflow -->	 
      <mapping mode="copy">
-	    <source id = "13"/>
+	    <source name = "i1"/>
 		<target ref="16" name="i1"/>
 	 </mapping>
 	 <mapping mode="pipe">
@@ -42,11 +42,11 @@
 	 </mapping>
      <mapping mode="copy">
           <source ref="17" name="o1"/>
-          <target id="14" />
+          <target name="o1" />
      </mapping>
 	 <mapping mode="error">
 		<source ref="16" name="o2"/>
-		<target id="15" />
+		<target name="o2" />
 	 </mapping>
   </data>
 </task>
