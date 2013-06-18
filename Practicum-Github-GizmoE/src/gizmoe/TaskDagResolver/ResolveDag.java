@@ -16,6 +16,9 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -32,35 +35,56 @@ public class ResolveDag {
 	public static void main(String[] args) {
 		try {
 
-			File file = new File("/Users/upsham/NewCombo.xml");
-
-			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
-					.newDocumentBuilder();
-
-			Document doc = dBuilder.parse(file);
-
-			System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
-
-			if (doc.hasChildNodes()) {
-
-				//printNote(doc.getChildNodes());
-				//xpathsearch();
-				resolve("/Users/upsham/NewCombo.xml");//Map the overall outputs/inputs using hashmap returned
+			//xpathsearch();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(false); // never forget this!
+			HashMap<Integer, ArrayList<Integer>> start_end =  resolve("NewCombo", factory);//Map the overall outputs/inputs using hashmap returned
+			System.out.println("Start IDs:");
+			for(int startid : start_end.get(-1)){
+				System.out.println(startid);
+				
 			}
+			System.out.println("End IDs:");
+			for(int startid : start_end.get(-2)){
+				System.out.println(startid);
+			}
+			printNextCap(16,taskdag);
+			printNextCap(17,taskdag);
+			printNextCap(10,taskdag);
+			printNextCap(21,taskdag);
+			printNextCap(12,taskdag);
+			printNextCap(25,taskdag);
+			printNextCap(26,taskdag);
 
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 
 	}
-
+	
+	private static void printNextCap(int id, MyDag testdag){
+		ArrayList<Integer> nextCap = testdag.nextCapabilities(id);
+		ArrayList<Integer> joinCap = testdag.nextCapabilities(id);
+		System.out.println("The nextcapability for "+id+" is:");
+		for(int i : nextCap){
+			System.out.println(i);
+		}
+		if(testdag.isJoin(id)){
+			System.out.println("This is also a joining point! The following capabilities join at this point:");
+			joinCap = testdag.joinToBecome(id);
+			for(int i : joinCap){
+				System.out.println(i);
+			}
+		}
+		System.out.println();
+	}
 	private static void xpathsearch(){
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(false); // never forget this!
 			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			Document doc = builder.parse("/Users/upsham/NewCombo.xml");
+			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+"NewCombo"+".xml");
+			Document doc = builder.parse(taskLoc);
 
 			XPathFactory xPathFactory = XPathFactory.newInstance();
 			XPath xpath = xPathFactory.newXPath();
@@ -97,14 +121,14 @@ public class ResolveDag {
 		}
 	}
 	
-	private static HashMap<Integer, ArrayList<Integer>> resolve(String filename){
+	private static HashMap<Integer, ArrayList<Integer>> resolve(String filename, DocumentBuilderFactory factory){
 		HashMap<Integer, ArrayList<Integer>> mappedID = new HashMap<Integer, ArrayList<Integer>>();
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(false); // never forget this!
+			
 			DocumentBuilder builder = factory.newDocumentBuilder();
-
-			Document doc = builder.parse(filename);
+			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+			Document doc = builder.parse(taskLoc);
+			System.out.println("Root element :" + doc.getDocumentElement().getAttribute("name"));
 
 			XPathFactory xPathFactory = XPathFactory.newInstance();
 			XPath xpath = xPathFactory.newXPath();
@@ -124,7 +148,7 @@ public class ResolveDag {
 					idMap.put(id, createCapability(name));
 					taskdag.addCapability(name, id, idMap.get(id).inputArr(), idMap.get(id).outputArr());
 				}else{
-					resolveMap.put(id, resolve(name));//Recursive step, careful here
+					resolveMap.put(id, resolve(name, factory));//Recursive step, careful here
 				}
 			}
 			
@@ -194,7 +218,7 @@ public class ResolveDag {
 							ArrayList<Integer> replacement = new ArrayList<Integer>();
 							for(int k = 0; k<parallel.getLength(); k++){
 								if(parallel.item(k).getNodeType() == Node.ELEMENT_NODE){
-									System.out.println(parallel.item(k).getAttributes().getNamedItem("id").getNodeValue());
+									//System.out.println(parallel.item(k).getAttributes().getNamedItem("id").getNodeValue());
 									int id = Integer.parseInt(parallel.item(k).getAttributes().getNamedItem("id").getNodeValue());
 									if(previous.isEmpty()){
 										if(!resolveMap.containsKey(id)){
@@ -375,68 +399,26 @@ public class ResolveDag {
 		ArrayList<Output> outputs =  new ArrayList<Output>();
 		ArrayList<Input> inputs =  new ArrayList<Input>();
 
-		try {
-			Scanner in = new Scanner(new File("/Users/upsham/capabilities/"+name));
-			while(in.hasNext()){
-				String line = in.nextLine();
-				String[] word = line.split(";");
-				if(word[0].equals("Input")){
-					inputs.add(new Input(word[1], capID++, word[2]));
-				}else if(word[0].equals("Output")){
-					outputs.add(new Output(word[1], capID++, word[2]));
-				}
+		InputStream input = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+name);
+		Scanner in = new Scanner(input);
+		while(in.hasNext()){
+			String line = in.nextLine();
+			String[] word = line.split(";");
+			if(word[0].equals("Input")){
+				inputs.add(new Input(word[1], capID++, word[2]));
+			}else if(word[0].equals("Output")){
+				outputs.add(new Output(word[1], capID++, word[2]));
 			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		return new Capability(name, inputs, outputs);
 		
 	}
 	private static boolean isCapability(String candidate){
-		return true;
-	}
-	private static void printNote(NodeList nodeList) {
-
-		for (int count = 0; count < nodeList.getLength(); count++) {
-
-			Node tempNode = nodeList.item(count);
-
-			// make sure it's element node.
-			if (tempNode.getNodeType() == Node.ELEMENT_NODE) {
-
-				// get node name and value
-				System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				System.out.println("Node Value =" + tempNode.getTextContent());
-
-				if (tempNode.hasAttributes()) {
-
-					// get attributes names and values
-					NamedNodeMap nodeMap = tempNode.getAttributes();
-
-					for (int i = 0; i < nodeMap.getLength(); i++) {
-
-						Node node = nodeMap.item(i);
-						System.out.println("attr name : " + node.getNodeName());
-						System.out.println("attr value : " + node.getNodeValue());
-
-					}
-
-				}
-
-				if (tempNode.hasChildNodes()) {
-
-					// loop again if has child nodes
-					printNote(tempNode.getChildNodes());
-
-				}
-
-				System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
-
-			}
-
+		if(candidate.startsWith("Task")){
+			return false;
+		}else{
+			return true;
 		}
-
 	}
 
 	private static class Capability{

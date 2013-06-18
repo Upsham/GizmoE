@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<task name="My Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <!-- inputs with no default value either must be queried from the user,
+	      or connected to outputs from other tasks/capabilities in a composition -->
+     <input id="1" name="i1" type="int"/>
+	 <input id="2" name="i2" type="int"/>
+	 <!-- default inputs need not be connected to outputs -->
+	 <input id="3" name="i3" type="int" default="1"/>
+  </inputs>
+  
+  <outputs>
+    <!-- outputGroups capture all potential outputs from a task, 
+    	including success and error cases -->
+    <outputGroup status="success">
+	  <output id="4" name="o1" type="int"/>
+	  <output id="5" name="o2" type="int"/>
+	</outputGroup>
+	<outputGroup status="error">
+	  <output id="6" name="o3" type="int"/>
+	  <output id="7" name="o4" type="int"/>
+	  <output id="8" name="o5" type="int"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+		 <step name="Task1" id="9"/> <!-- name should be the name in the database -->
+		 <flow type="parallel">
+		   <step name="Capability1" id="10"/>
+		   <step name="Task2" id="11"/>
+		 </flow>
+		 <step name="Capability2" id="12"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source id = "1"/>
+		<target ref="9" name="i1"/>
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="9" name="o1"/>
+		<target ref="11" name="i1" />
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="11" name="o1"/>
+		<target ref="12" name="i1" />
+	 </mapping>
+	 <mapping mode="copy">
+	    <source id = "2"/>
+		<target ref="10" name="i1"/>
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="10" name="o1"/>
+		<target ref="12" name="i2" />
+	 </mapping>
+	 <mapping mode="copy">
+	    <source ref="12" name="o1"/>
+		<target id = "4" />
+	 </mapping>
+	 <mapping mode="copy">
+	    <source ref="12" name="o2"/>
+		<target id = "5" />
+	 </mapping>
+	 <mapping mode="user"> <!-- of interest-->
+        <prompt string="Ask for this" />
+	 	<target ref="12" name="i3" />
+	 </mapping>
+	 <mapping mode="error"> <!-- of interest-->
+	 	<source ref="9" name="o2"/>
+	 	<target id="6" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="10" name="o2"/>
+	 	<target id="6" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="11" name="o2"/>
+	 	<target id="7" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="12" name="o3"/>
+	 	<target id="8" />
+	 </mapping>
+	 
+  </data>
+</task>
