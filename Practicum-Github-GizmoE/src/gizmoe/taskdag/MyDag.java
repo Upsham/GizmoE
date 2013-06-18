@@ -220,11 +220,14 @@ public class MyDag implements MyDagInterface{
 
 	@Override
 	public ArrayList<Integer> nextCapabilities(int id) {
+		int oldid = id;
 		id = internalID.get(id);
 		ArrayList<Integer> next = new ArrayList<Integer>();
 		for(int i = 0; i<connectMap.get(id).size(); i++){
 			if(connectMap.get(id).get(i)){
-				next.add(capabilityMap.get(i).id);
+				if(oldid!=capabilityMap.get(i).id){
+					next.add(capabilityMap.get(i).id);
+				}
 			}
 		}
 		return next;

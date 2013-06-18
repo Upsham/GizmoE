@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<task name="Task3">
+  <!-- inputs to the task -->
+  <inputs>
+     <!-- inputs with no default value either must be queried from the user,
+	      or connected to outputs from other tasks/capabilities in a composition -->
+     <input id="23" name="i1" type="int"/>
+  </inputs>
+  
+  <outputs>
+    <!-- outputGroups capture all potential outputs from a task, 
+    	including success and error cases -->
+    <outputGroup status="success">
+	  <output id="24" name="o1" type="int"/>
+	  <output id="27" name="o2" type="int"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="parallel">
+		 <step name="Capability3" id="25"/>
+		 <step name="Capability3" id="26"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "i1"/>
+		<target ref="25" name="i1"/>
+	 </mapping>
+	 <mapping mode="copy">
+	    <source name = "i1"/>
+		<target ref="26" name="i1" />
+	 </mapping>
+     <mapping mode="copy">
+          <source ref="25" name="o1"/>
+          <target name="o1" />
+     </mapping>
+	 <mapping mode="copy">
+		<source ref="26" name="o1"/>
+		<target name="o2" />
+	 </mapping>
+  </data>
+</task>
