@@ -3,22 +3,14 @@ package gizmoe.TaskDagResolver;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import gizmoe.taskdag.*;
-
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -582,7 +574,8 @@ public class ResolveDag {
 			return true;
 		}
 	}
-
+	
+	@SuppressWarnings("unused")
 	private static void xpathsearch(){
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -624,7 +617,9 @@ public class ResolveDag {
 			e.printStackTrace();
 		}
 	}
+	
 	private static class Capability{
+		@SuppressWarnings("unused")
 		String name;
 		ArrayList<Input> inputs;
 		ArrayList<Output> outputs;
