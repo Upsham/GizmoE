@@ -2,26 +2,21 @@
 <task name="My Task">
   <!-- inputs to the task -->
   <inputs>
-     <!-- inputs with no default value either must be queried from the user,
-	      or connected to outputs from other tasks/capabilities in a composition -->
-     <input id="1" name="i1" type="int"/>
-	 <input id="2" name="i2" type="int"/>
-	 <!-- default inputs need not be connected to outputs -->
-	 <input id="3" name="i3" type="int" default="1"/>
+     <input name="i1" type="int"/>
+	 <input name="i2" type="int"/>
+	 <input name="i3" type="int" default="1"/>
   </inputs>
   
   <outputs>
-    <!-- outputGroups capture all potential outputs from a task, 
-    	including success and error cases -->
     <outputGroup status="success">
-	  <output id="4" name="o1" type="int"/>
-	  <output id="5" name="o2" type="int"/>
+	  <output name="o1" type="int"/>
+	  <output name="o2" type="int"/>
 	</outputGroup>
 	<outputGroup status="error">
-	  <output id="6" name="o3" type="int"/>
-	  <output id="7" name="o4" type="int"/>
-	  <output id="8" name="o5" type="int"/>
-	  <output id="30" name="o6" type="int"/>
+	  <output name="o3" type="int"/>
+	  <output name="o4" type="int"/>
+	  <output name="o5" type="int"/>
+	  <output name="o6" type="int"/>
 	  
 	</outputGroup>
   </outputs>

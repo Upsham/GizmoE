@@ -24,7 +24,7 @@ public class ResolveDag {
 	private static HashMap<Integer, Capability> idMap = new HashMap<Integer, Capability>();
 	private static HashMap<Integer, HashMap<String, ArrayList<Integer>>> resolveMap = new HashMap<Integer, HashMap<String, ArrayList<Integer>>>();
 	private static int ioidcounter = 2;
-	
+	private static HashMap<String, Integer> overallIOMap = new HashMap<String, Integer>();
 	/**********************************************************************************************************
 	 * Only for BASIC TESTING (during developmeny). Please use the unit test method in devtest instead
 	 **********************************************************************************************************/
@@ -39,7 +39,7 @@ public class ResolveDag {
 			userInputList[0] = new Input("user",1,"user");
 			userOutputList[0] = new Output("user",0,"user");
 			taskdag.addCapability("userDummyCapability", 0, userInputList, userOutputList);
-			HashMap<String, ArrayList<Integer>> start_end =  resolve("NewCombo", factory);//Map the overall outputs/inputs using hashmap returned
+			HashMap<String, ArrayList<Integer>> start_end =  resolve("NewCombo", factory, true);//Map the overall outputs/inputs using hashmap returned
 			System.out.println("Start IDs:");
 			for(int startid : start_end.get("-1")){
 				System.out.println(startid);
@@ -95,7 +95,8 @@ public class ResolveDag {
 		/******************************
 		 * Recursively solve!
 		 ******************************/
-		HashMap<String, ArrayList<Integer>> start_end =  resolve(MainTaskName, factory);//Map the overall outputs/inputs using hashmap returned
+		HashMap<String, ArrayList<Integer>> start_end =  resolve(MainTaskName, factory, true);//Map the overall outputs/inputs using hashmap returned
+		
 		/*****************************
 		 * Set start IDs
 		 *****************************/
@@ -114,7 +115,7 @@ public class ResolveDag {
 	}
 	
 	
-	private static HashMap<String, ArrayList<Integer>> resolve(String filename, DocumentBuilderFactory factory){
+	private static HashMap<String, ArrayList<Integer>> resolve(String filename, DocumentBuilderFactory factory, boolean isRoot){
 		HashMap<String, ArrayList<Integer>> mappedID = new HashMap<String, ArrayList<Integer>>();
 		try {
 			
@@ -141,8 +142,55 @@ public class ResolveDag {
 					idMap.put(id, createCapability(name));
 					taskdag.addCapability(name, id, idMap.get(id).inputArr(), idMap.get(id).outputArr());
 				}else{
-					resolveMap.put(id, resolve(name, factory));//Recursive step, careful here
+					resolveMap.put(id, resolve(name, factory, false));//Recursive step, careful here
 				}
+			}
+			/******************************
+			 * Control Resolution
+			 *****************************/
+			if(isRoot){
+				NodeList data = doc.getElementsByTagName("inputs").item(0).getChildNodes();
+				ArrayList<Input> in = new ArrayList<Input>();
+				ArrayList<Output> out = new ArrayList<Output>();
+				for(int i = 0; i<data.getLength(); i++){
+					if(data.item(i).getNodeType()==Node.ELEMENT_NODE){
+						String name = data.item(i).getAttributes().getNamedItem("name").getNodeValue();
+						String type = data.item(i).getAttributes().getNamedItem("type").getNodeValue();
+						if(data.item(i).getAttributes().getNamedItem("default")!=null){
+							String defaul = data.item(i).getAttributes().getNamedItem("default").getNodeValue();
+							overallIOMap.put(name, ioidcounter);
+							in.add(new Input(name, ioidcounter++, type, defaul));
+						}else{
+							overallIOMap.put(name, ioidcounter);
+							in.add(new Input(name, ioidcounter++, type));
+						}
+					}
+				}
+				data = doc.getElementsByTagName("outputGroup");
+				for(int i = 0; i<data.getLength(); i++){
+					String outgroup = data.item(i).getAttributes().getNamedItem("status").getNodeValue();
+					NodeList internals = data.item(i).getChildNodes();
+					for(int j = 0; j< internals.getLength(); j++){
+						if(internals.item(j).getNodeType()==Node.ELEMENT_NODE){
+							String name = internals.item(j).getAttributes().getNamedItem("name").getNodeValue();
+							String type = internals.item(j).getAttributes().getNamedItem("type").getNodeValue();
+							overallIOMap.put(name, ioidcounter);
+							out.add(new Output(name, ioidcounter++, type, outgroup));
+						}
+					}
+				}
+				
+				Input[] inputArr = new Input[in.size()];
+				Output[] outputArr = new Output[out.size()];
+				for(int i = 0; i < in.size(); i++){
+					inputArr[i] = in.get(i);
+				}
+				for(int i = 0; i < out.size(); i++){
+					outputArr[i] = out.get(i);
+				}
+
+				taskdag.addOverallIO(inputArr, outputArr);
+
 			}
 			/******************************
 			 * Control Resolution
@@ -433,6 +481,12 @@ public class ResolveDag {
 						}
 						if(mappedID.containsKey(toIOName)){
 							throw new Exception ("An output is being remapped, not valid. A task output can only have one connection");
+						}else if(isRoot){
+							if(idArray.size()==1){
+								taskdag.mapIO(idArray.get(0), overallIOMap.get(toIOName), mode);
+							}else{
+								throw new Exception("Overall IO cannout be mapped correctly as one to many mapping is being tried");
+							}
 						}else{
 							mappedID.put(toIOName, idArray);
 						}
@@ -453,8 +507,17 @@ public class ResolveDag {
 						}else{
 								idArray.addAll(resolveMap.get(toCapID).get(toIOName));
 						}	
-						mappedID.put(fromIOName, idArray);
-
+						
+						if(!isRoot){
+							mappedID.put(fromIOName, idArray);
+						}else{
+							if(idArray.size()==1){
+								taskdag.mapIO(overallIOMap.get(fromIOName), idArray.get(0), mode);
+							}else{
+								throw new Exception("Overall IO cannout be mapped correctly as one to many mapping is being tried");
+							}
+						}
+						
 					}else{
 						throw new Exception("The mapping block has an invalid entry, with type 'copy'.");
 					}
@@ -483,13 +546,19 @@ public class ResolveDag {
 							idArray.add(idMap.get(fromCapID).ioLookup.get(fromIOName));
 						}else{
 							if(resolveMap.get(fromCapID).get(fromIOName).size()>1){
-								throw new Exception("Trying to map more than one outputs to one task output");
+								throw new Exception("Trying to map more than one output to one task output");
 							}else{
 								idArray.add(resolveMap.get(fromCapID).get(fromIOName).get(0));
 							}
 						}
 						if(mappedID.containsKey(toIOName)){
 							throw new Exception ("An output is being remapped, not valid. A task output can only have one connection");
+						}else if(isRoot){
+							if(idArray.size()==1){
+								taskdag.mapIO(idArray.get(0), overallIOMap.get(toIOName), mode);
+							}else{
+								throw new Exception("Overall IO cannout be mapped correctly as one to many mapping is being tried");
+							}
 						}else{
 							mappedID.put(toIOName, idArray);
 						}
@@ -510,8 +579,15 @@ public class ResolveDag {
 						}else{
 								idArray.addAll(resolveMap.get(toCapID).get(toIOName));
 						}	
-						mappedID.put(fromIOName, idArray);
-
+						if(!isRoot){
+							mappedID.put(fromIOName, idArray);
+						}else{
+							if(idArray.size()==1){
+								taskdag.mapIO(overallIOMap.get(fromIOName), idArray.get(0), mode);
+							}else{
+								throw new Exception("Overall IO cannout be mapped correctly as one to many mapping is being tried");
+							}
+						}
 					}else{
 						int fromCapID = Integer.parseInt(mapping.item(1).getAttributes().getNamedItem("ref").getNodeValue());
 						String fromIOName = mapping.item(1).getAttributes().getNamedItem("name").getNodeValue();

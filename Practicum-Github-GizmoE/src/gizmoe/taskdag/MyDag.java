@@ -16,8 +16,8 @@ import java.util.HashMap;
 public class MyDag implements MyDagInterface{
 
 	HashMap<Integer, Capability> capabilityMap;
-	HashMap<Integer, Input> overallInputMap;
-	HashMap<Integer, Output> overallOutputMap;	
+	ArrayList <Input> overallInputMap;
+	ArrayList<Output> overallOutputMap;	
 	ArrayList<ArrayList<Boolean>> connectMap;
 	ArrayList<ArrayList<IOMapping>> ioMap;
 	HashMap<Integer, Integer> internalID;
@@ -33,8 +33,8 @@ public class MyDag implements MyDagInterface{
 		connectMap = new ArrayList<ArrayList<Boolean>>();
 		ioMap = new ArrayList<ArrayList<IOMapping>>();
 		originalIOID = new ArrayList<Integer>();
-		overallInputMap = new HashMap<Integer, Input>();
-		overallOutputMap = new HashMap<Integer, Output>();
+		overallInputMap = new ArrayList <Input>();
+		overallOutputMap = new ArrayList <Output>();
 
 	}
 	
@@ -161,17 +161,28 @@ public class MyDag implements MyDagInterface{
 	@Override
 	public void addOverallIO(Input[] overallInputs, Output[] overallOutputs) {
 		for(Input in : overallInputs){
+			overallInputMap.add(in);
 			internalIOID.put(in.id, ioID++);
 			originalIOID.add(in.id);
 			Grow2DArrayIO(ioMap);
 		}
 		for(Output out : overallOutputs){
+			overallOutputMap.add(out);
 			internalIOID.put(out.id, ioID++);
 			originalIOID.add(out.id);
 			Grow2DArrayIO(ioMap);
 		}		
 	}
 
+	public ArrayList<Input> getAllOverallInput(){
+		return overallInputMap;
+	}
+	
+	public ArrayList<Output> getAllOverallOutput(){
+		return overallOutputMap;
+	}
+	
+	
 	@Override
 	public String getCapabilityName(int id) {
 		Capability cap = capabilityMap.get(internalID.get(id));
