@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TestCapability extends CapabilityBase{
+public class MultiJVMBasicTestCapability implements Runnable{
 
 	/**
 	 * 
@@ -16,8 +16,7 @@ public class TestCapability extends CapabilityBase{
 	private static final long serialVersionUID = 1L;
 
 	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
-		System.out.println("From TestCapability: thread"+this.hashCode());
+	public void run() {
 		try {
 			File file = new File("CS_MultiJVM_Test.txt");
 			 
@@ -29,17 +28,15 @@ public class TestCapability extends CapabilityBase{
     		//true = append file
     		FileWriter fileWriter = new FileWriter(file.getName(),true);
     	    BufferedWriter bufferWriter = new BufferedWriter(fileWriter);
-    	    bufferWriter.write("thread"+this.hashCode());
+    	    bufferWriter.write("thread"+this.hashCode()+"\n");
     	    bufferWriter.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
 	}
 
 }

@@ -1,13 +1,16 @@
 package gizmoe.capabilities;
 
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnection;
@@ -44,14 +47,26 @@ public abstract class CapabilityBase implements Runnable, Serializable {
         getQueue = session.createConsumer(destination);
         putQueue = session.createProducer(replydest);
 		}catch (JMSException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void run() {
-		body();
+		try {
+			Message inMsg = getQueue.receive();
+			if(inMsg instanceof ObjectMessage){
+				//TODO what message do we want? For now, serialized hashmap
+				if(((ObjectMessage) inMsg).getObject() instanceof ConcurrentHashMap<?, ?>){
+					@SuppressWarnings("unchecked")
+					ConcurrentHashMap<String, Object> inputs = (ConcurrentHashMap<String, Object>) ((ObjectMessage) inMsg).getObject();
+					ConcurrentHashMap<String, Object> outputs = body(inputs);
+				}
+			}
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+
 	}
 	
-	public abstract void body();
+	public abstract ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs);
 }

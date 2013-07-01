@@ -2,6 +2,7 @@ package gizmoe.taskexecutor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
@@ -10,9 +11,11 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 
 import messages.SpawnMessage;
 
@@ -30,6 +33,8 @@ public class TaskExecutor {
 	static MessageProducer putQueue;
 	static Session session;
 	static Connection connection;
+	private static ConcurrentHashMap <Integer, MessageProducer> capabilityMessageMap = new ConcurrentHashMap<Integer, MessageProducer>();
+	private static ConcurrentHashMap <Integer, MessageConsumer> capabilityReplyMap = new ConcurrentHashMap<Integer, MessageConsumer>();
 	public static void main(String[] args) {
 		Thread t1 = new Thread(new CapabilitySpawner());
 		t1.start();
@@ -84,7 +89,39 @@ public class TaskExecutor {
 		
 	}
 	
-	private static ConcurrentHashMap<Integer, String> startCapabilities(ConcurrentHashMap<Integer, String> toStart){
+	private static void createCapabilityMessageQueues(ConcurrentHashMap <Integer, String> capabilityQueues){
+		Destination destination;
+		for(int id : capabilityQueues.keySet()){
+			String queueName = capabilityQueues.get(id);
+			if(!capabilityMessageMap.containsKey(id)){
+				try {
+					destination = session.createQueue(queueName);
+					MessageProducer queue = session.createProducer(destination);
+					capabilityMessageMap.put(id, queue);
+				} catch (JMSException e) {
+					e.printStackTrace();
+				}
+			}else{
+				System.err.println("ID collision detected in task executor!");
+			}
+			
+			if(!capabilityReplyMap.containsKey(id)){
+				try {
+					destination = session.createQueue(queueName+"reply");
+					MessageConsumer queue = session.createConsumer(destination);
+					CustomMessageListener listener = new CustomMessageListener();
+			        listener.setParams(id, queueName);
+			        queue.setMessageListener(listener);
+					capabilityReplyMap.put(id, queue);
+				} catch (JMSException e) {
+					e.printStackTrace();
+				}
+			}else{
+				System.err.println("ID collision detected in task executor!");
+			}
+		}
+	}
+	public static ConcurrentHashMap<Integer, String> startCapabilities(ConcurrentHashMap<Integer, String> toStart){
 		SpawnMessage spawnMsg = new SpawnMessage(toStart);
 		ObjectMessage send;
 		try {
@@ -104,7 +141,7 @@ public class TaskExecutor {
 		return null;
 	}
 	
-	private static void exitCleanly(){
+	public static void exitCleanly(){
         try {
 			connection.stop();
 	        connection.close();
