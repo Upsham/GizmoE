@@ -1,0 +1,143 @@
+package gizmoe.taskexecutor;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Session;
+
+import messages.SpawnMessage;
+
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
+import gizmoe.taskdag.MyDag;
+
+public class TaskExecutor {
+
+	static MyDag taskdag;
+	static MessageConsumer getQueue;
+	static MessageProducer putQueue;
+	static Session session;
+	static Connection connection;
+	public static void main(String[] args) {
+		Thread t1 = new Thread(new CapabilitySpawner());
+		t1.start();
+		execute();
+	}
+	
+	public static void callback(MyDag dag){
+		taskdag = dag;
+	}
+	
+	public static void setUpConnection(){
+		Logger.getRootLogger().setLevel(Level.OFF);
+		String url = ActiveMQConnection.DEFAULT_BROKER_URL;
+
+		// Getting JMS connection from the server
+		ConnectionFactory connectionFactory
+		= new ActiveMQConnectionFactory(url);
+		try {
+			connection = connectionFactory.createConnection();
+
+			connection.start();
+
+			// Creating session for sending messages
+			session = connection.createSession(false,
+					Session.AUTO_ACKNOWLEDGE);
+
+			// Getting the queue 'InvokeQueue'
+			Destination destination = session.createQueue("SpawnReply");
+			Destination replydest = session.createQueue("Spawn");
+
+			// MessageConsumer is used for receiving (consuming) messages
+			getQueue = session.createConsumer(destination);
+			putQueue = session.createProducer(replydest);
+		}catch (JMSException e) {
+			e.printStackTrace();
+		}
+	}
+	public static void execute(){
+		setUpConnection();
+		
+		
+		ConcurrentHashMap <Integer, String> map = new ConcurrentHashMap<Integer, String>();
+		map.put(1, "TestCapability");
+		map.put(2, "TestCapability");
+		
+		ConcurrentHashMap <Integer, String> capabilityQueues = startCapabilities(map);
+		for(String str : capabilityQueues.values()){
+			System.out.println("TaskExecutor:: Hashmap contains "+str);
+		}
+		
+		exitCleanly();
+		
+	}
+	
+	private static ConcurrentHashMap<Integer, String> startCapabilities(ConcurrentHashMap<Integer, String> toStart){
+		SpawnMessage spawnMsg = new SpawnMessage(toStart);
+		ObjectMessage send;
+		try {
+			send = session.createObjectMessage(spawnMsg);
+			putQueue.send(send);
+			Message inMsg = getQueue.receive();
+			if(inMsg instanceof ObjectMessage){
+				ObjectMessage tmp = (ObjectMessage) inMsg;
+				if(tmp.getObject() instanceof SpawnMessage){
+					spawnMsg = (SpawnMessage) tmp.getObject();
+					return spawnMsg.getCapabilities();
+				}
+			}
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private static void exitCleanly(){
+        try {
+			connection.stop();
+	        connection.close();
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+	}
+	@SuppressWarnings("unused")
+	private static void searchAndExecuteCapability(String name){
+		try {
+			Class<?> c = Class.forName(name);
+			Constructor<?> constructor = c.getConstructor();
+			Object o = constructor.newInstance();
+			System.out.println(o.hashCode());
+			Thread t1 = new Thread((Runnable) o);
+			t1.run();
+			System.out.println("magic!");
+		} catch (ClassNotFoundException e) {
+			System.out.print("The class does not exist in the capability package!");
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+	}
+
+}
