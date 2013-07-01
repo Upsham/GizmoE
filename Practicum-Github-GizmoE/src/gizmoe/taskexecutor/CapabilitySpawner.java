@@ -79,7 +79,7 @@ public class CapabilitySpawner implements Runnable {
 			Constructor<?> constructor = c.getConstructor();
 			Object o = constructor.newInstance();
 			Thread t1 = new Thread((Runnable) o);
-			t1.run();
+			t1.start();
 			return o.hashCode();
 		} catch (ClassNotFoundException e) {
 			System.out.print("The class does not exist in the capability package!");

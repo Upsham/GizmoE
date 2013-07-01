@@ -2,7 +2,6 @@ package gizmoe.taskexecutor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
@@ -11,11 +10,9 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
-import javax.jms.TextMessage;
 
 import messages.SpawnMessage;
 
@@ -77,14 +74,30 @@ public class TaskExecutor {
 		
 		
 		ConcurrentHashMap <Integer, String> map = new ConcurrentHashMap<Integer, String>();
-		map.put(1, "TestCapability");
-		map.put(2, "TestCapability");
+		map.put(100, "TestCapability");
+		map.put(200, "TestCapability");
 		
 		ConcurrentHashMap <Integer, String> capabilityQueues = startCapabilities(map);
-		for(String str : capabilityQueues.values()){
-			System.out.println("TaskExecutor:: Hashmap contains "+str);
+		System.out.println("TaskExecutor:: Creating queues");
+		createCapabilityMessageQueues(capabilityQueues);
+		System.out.println("TaskExecutor:: Created queues!!");
+		for(int id : capabilityMessageMap.keySet()){
+			System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+" - "+id);
+			ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
+			input.put("out", id);
+			ObjectMessage tmpMsg;
+			try {
+				tmpMsg = session.createObjectMessage(input);
+				capabilityMessageMap.get(id).send(tmpMsg);
+			} catch (JMSException e) {
+				e.printStackTrace();
+			}
 		}
-		
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
 		exitCleanly();
 		
 	}

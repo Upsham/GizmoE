@@ -5,10 +5,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class MultiJVMBasicTestCapability implements Runnable{
+public class MultiJVMBasicTestCapability implements Runnable, Serializable{
 
 	/**
 	 * 

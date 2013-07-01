@@ -1,9 +1,10 @@
 package gizmoe.taskexecutor;
 
-import javax.jms.JMSException;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.jms.Message;
 import javax.jms.MessageListener;
-import javax.jms.TextMessage;
+import javax.jms.ObjectMessage;
 
 public class CustomMessageListener implements MessageListener{
 
@@ -11,12 +12,16 @@ public class CustomMessageListener implements MessageListener{
 	String queue;
     public void onMessage(Message message) {
         try {
-            if (message instanceof TextMessage) {
-                TextMessage textMessage = (TextMessage) message;
-                System.out.println("TaskExecutor received message from "+queue+" :: "
-                        + textMessage.getText() + "'");
+            if (message instanceof ObjectMessage) {
+                ObjectMessage inMsg = (ObjectMessage) message;
+                if(inMsg.getObject() instanceof ConcurrentHashMap<?, ?>){
+                	@SuppressWarnings("unchecked")
+					ConcurrentHashMap<String, Object> output = (ConcurrentHashMap<String, Object>) inMsg.getObject();
+                	int toPrint = (Integer) output.get("out");
+                	System.out.println("TaskExecutor:: "+queue+" gave me - "+toPrint);
+                }
             }
-        } catch (JMSException e) {
+        } catch (Exception e) {
             System.out.println("Caught:" + e);
             e.printStackTrace();
         }

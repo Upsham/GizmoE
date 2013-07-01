@@ -51,8 +51,18 @@ public abstract class CapabilityBase implements Runnable, Serializable {
 		}
 	}
 	
-	public void run() {
+	public void exitCleanly(){
 		try {
+			connection.stop();
+			connection.close();
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
+	}
+	public void run() {
+		this.setUp();
+		try {
+			System.out.println(this.hashCode()+":: Waiting for msg");
 			Message inMsg = getQueue.receive();
 			if(inMsg instanceof ObjectMessage){
 				//TODO what message do we want? For now, serialized hashmap
@@ -60,11 +70,15 @@ public abstract class CapabilityBase implements Runnable, Serializable {
 					@SuppressWarnings("unchecked")
 					ConcurrentHashMap<String, Object> inputs = (ConcurrentHashMap<String, Object>) ((ObjectMessage) inMsg).getObject();
 					ConcurrentHashMap<String, Object> outputs = body(inputs);
+					ObjectMessage outMsg = session.createObjectMessage(outputs);
+					putQueue.send(outMsg);
+					
 				}
 			}
 		} catch (JMSException e) {
 			e.printStackTrace();
 		}
+		this.exitCleanly();
 
 	}
 	
