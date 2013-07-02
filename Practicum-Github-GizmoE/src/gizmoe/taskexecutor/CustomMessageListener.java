@@ -18,7 +18,7 @@ public class CustomMessageListener implements MessageListener{
                 	@SuppressWarnings("unchecked")
 					ConcurrentHashMap<String, Object> output = (ConcurrentHashMap<String, Object>) inMsg.getObject();
                 	int toPrint = (Integer) output.get("out");
-                	System.out.println("TaskExecutor:: "+queue+" gave me - "+toPrint);
+                	System.out.println("TaskExecutor:: "+queue+" gave me:: "+toPrint);
                 }
             }
         } catch (Exception e) {

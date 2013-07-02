@@ -62,7 +62,6 @@ public abstract class CapabilityBase implements Runnable, Serializable {
 	public void run() {
 		this.setUp();
 		try {
-			System.out.println(this.hashCode()+":: Waiting for msg");
 			Message inMsg = getQueue.receive();
 			if(inMsg instanceof ObjectMessage){
 				//TODO what message do we want? For now, serialized hashmap

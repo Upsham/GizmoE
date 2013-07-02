@@ -78,11 +78,11 @@ public class TaskExecutor {
 		map.put(200, "TestCapability");
 		
 		ConcurrentHashMap <Integer, String> capabilityQueues = startCapabilities(map);
-		System.out.println("TaskExecutor:: Creating queues");
+		//System.out.println("TaskExecutor:: Creating queues");
 		createCapabilityMessageQueues(capabilityQueues);
-		System.out.println("TaskExecutor:: Created queues!!");
+		//System.out.println("TaskExecutor:: Created queues!!");
 		for(int id : capabilityMessageMap.keySet()){
-			System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+" - "+id);
+			System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+":: "+id);
 			ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
 			input.put("out", id);
 			ObjectMessage tmpMsg;
