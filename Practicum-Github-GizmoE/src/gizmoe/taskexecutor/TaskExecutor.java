@@ -14,13 +14,13 @@ import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
-import messages.SpawnMessage;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import gizmoe.messages.SpawnMessage;
 import gizmoe.taskdag.MyDag;
 
 public class TaskExecutor {
@@ -54,7 +54,7 @@ public class TaskExecutor {
 
 			connection.start();
 
-			// Creating session for sending messages
+			// Creating session for sending gizmoe.messages
 			session = connection.createSession(false,
 					Session.AUTO_ACKNOWLEDGE);
 
@@ -62,7 +62,7 @@ public class TaskExecutor {
 			Destination destination = session.createQueue("SpawnReply");
 			Destination replydest = session.createQueue("Spawn");
 
-			// MessageConsumer is used for receiving (consuming) messages
+			// MessageConsumer is used for receiving (consuming) gizmoe.messages
 			getQueue = session.createConsumer(destination);
 			putQueue = session.createProducer(replydest);
 		}catch (JMSException e) {

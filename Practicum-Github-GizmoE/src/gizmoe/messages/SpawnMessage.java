@@ -1,4 +1,4 @@
-package messages;
+package gizmoe.messages;
 
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;

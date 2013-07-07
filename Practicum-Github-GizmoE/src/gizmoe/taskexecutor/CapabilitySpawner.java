@@ -1,12 +1,13 @@
 package gizmoe.taskexecutor;
 
+import gizmoe.messages.SpawnMessage;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.*;
 
-import messages.SpawnMessage;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -18,7 +19,7 @@ public class CapabilitySpawner implements Runnable {
     // that JMS server is on localhost
     private static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
 
-    // Name of the queue we will be sending messages to
+    // Name of the queue we will be sending gizmoe.messages to
     private static String subject = "Spawn";
     private static String replysubject = "SpawnReply";
     
@@ -32,14 +33,14 @@ public class CapabilitySpawner implements Runnable {
 			connection = connectionFactory.createConnection();
 
         connection.start();
-        // Creating session for sending messages
+        // Creating session for sending gizmoe.messages
         Session session = connection.createSession(false,
             Session.AUTO_ACKNOWLEDGE);
         // Getting the queue 'InvokeQueue'
         Destination destination = session.createQueue(subject);
         Destination replydest = session.createQueue(replysubject);
 
-        // MessageConsumer is used for receiving (consuming) messages
+        // MessageConsumer is used for receiving (consuming) gizmoe.messages
         MessageConsumer consumer = session.createConsumer(destination);
         MessageProducer producer = session.createProducer(replydest);
         
