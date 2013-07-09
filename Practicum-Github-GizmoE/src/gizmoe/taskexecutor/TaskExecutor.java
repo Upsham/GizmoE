@@ -2,6 +2,8 @@ package gizmoe.taskexecutor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
@@ -20,8 +22,11 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import gizmoe.TaskDagResolver.ResolveDag;
 import gizmoe.messages.SpawnMessage;
+import gizmoe.taskdag.Input;
 import gizmoe.taskdag.MyDag;
+import gizmoe.taskdag.Output;
 
 public class TaskExecutor {
 
@@ -32,7 +37,11 @@ public class TaskExecutor {
 	static Connection connection;
 	private static ConcurrentHashMap <Integer, MessageProducer> capabilityMessageMap = new ConcurrentHashMap<Integer, MessageProducer>();
 	private static ConcurrentHashMap <Integer, MessageConsumer> capabilityReplyMap = new ConcurrentHashMap<Integer, MessageConsumer>();
+	
+	private static ConcurrentHashMap <Integer, Object> outputCache = new ConcurrentHashMap<Integer, Object>();
 	public static void main(String[] args) {
+		MyDag testdag = ResolveDag.TaskDagResolver("NewCombo");
+		callback(testdag);
 		Thread t1 = new Thread(new CapabilitySpawner());
 		t1.start();
 		execute();
@@ -72,19 +81,36 @@ public class TaskExecutor {
 	public static void execute(){
 		setUpConnection();
 		
-		
+		ArrayList<Integer> startids = taskdag.startCapabilities();
 		ConcurrentHashMap <Integer, String> map = new ConcurrentHashMap<Integer, String>();
-		map.put(100, "TestCapability");
-		map.put(200, "TestCapability");
-		
+		for(int id : startids){
+			map.put(id, taskdag.getCapabilityName(id));
+		}
 		ConcurrentHashMap <Integer, String> capabilityQueues = startCapabilities(map);
 		//System.out.println("TaskExecutor:: Creating queues");
 		createCapabilityMessageQueues(capabilityQueues);
 		//System.out.println("TaskExecutor:: Created queues!!");
+		Scanner sysin = new Scanner(System.in);
 		for(int id : capabilityMessageMap.keySet()){
 			System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+":: "+id);
 			ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
-			input.put("out", id);
+			Input[] inputs = taskdag.getCapabilityInputs(id);
+			for(Input in : inputs){
+				System.out.print("User input required, please enter '"+in.name+"' of type '"+in.type+"': ");
+				if(in.type == "int"){
+					input.put(in.name, Integer.parseInt(sysin.nextLine()));
+				}else if(in.type == "string"){
+					input.put(in.name, sysin.nextLine());
+				}else if(in.type == "boolean"){
+					input.put(in.name, Boolean.parseBoolean(sysin.nextLine()));
+				}else if(in.type == "double"){
+					input.put(in.name, Double.parseDouble(sysin.nextLine()));
+				}else if(in.type == "float"){
+					input.put(in.name, Float.parseFloat(sysin.nextLine()));
+				}else{
+					System.err.println("Unrecognized input type!!");
+				}
+			}
 			ObjectMessage tmpMsg;
 			try {
 				tmpMsg = session.createObjectMessage(input);
@@ -100,6 +126,18 @@ public class TaskExecutor {
 		}
 		exitCleanly();
 		
+	}
+	
+	public synchronized static void registerOutputs(int id, ConcurrentHashMap<String, Object> outputMap){
+		Output[] outputs = taskdag.getCapabilityOutputs(id);
+		for(Output out : outputs){
+			if(!outputCache.containsKey(out.id)){
+				outputCache.put(out.id, outputMap.get(out.name));
+			}else{
+				System.err.println("Task Executor's capability output cache already contains an enrry with ID "+out.id);
+			}
+		}
+		// get the outputs from actual capability using callback, store in local cache
 	}
 	
 	private static void createCapabilityMessageQueues(ConcurrentHashMap <Integer, String> capabilityQueues){
