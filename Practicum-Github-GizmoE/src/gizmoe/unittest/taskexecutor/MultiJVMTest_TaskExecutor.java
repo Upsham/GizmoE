@@ -16,6 +16,7 @@ public class MultiJVMTest_TaskExecutor {
 	/**
 	 * @param args
 	 */
+	@Deprecated
 	public static void main(String[] args) {
 		System.out.println("This test assumes that MultiJVMTest_CapSpawner is running in a different process");
 		System.out.println("If MultiJVMTest_CapSpawner is running and you are ready to begin, type 'y'");
@@ -29,7 +30,9 @@ public class MultiJVMTest_TaskExecutor {
 			map.put(1, "MultiJVMBasicTestCapability");
 			map.put(2, "MultiJVMBasicTestCapability");
 
-			ConcurrentHashMap <Integer, String> capabilityQueues = TaskExecutor.startCapabilities(map);
+			//ConcurrentHashMap <Integer, String> capabilityQueues = TaskExecutor.startCapabilities(map);
+			// Note : This test WILL NOT work anymore, due to aync changes in TE. However, it is STILL MultiVM
+			// and this has been verified separately
 			try {
 				File file = new File("TE_MultiJVM_Test.txt");
 				 
@@ -40,9 +43,9 @@ public class MultiJVMTest_TaskExecutor {
 	 
 	    		FileWriter fileWriter = new FileWriter(file.getName(), false);
 	    	    BufferedWriter bufferWriter = new BufferedWriter(fileWriter);
-				for(String str : capabilityQueues.values()){
-		    	    bufferWriter.write(str+"\n");
-				}
+//				for(String str : capabilityQueues.values()){
+//		    	    bufferWriter.write(str+"\n");
+//				}
 	    	    bufferWriter.close();
 
 			} catch (FileNotFoundException e) {

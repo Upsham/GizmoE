@@ -67,8 +67,8 @@
 	    <source ref="12" name="o2"/>
 		<target name = "o2" />
 	 </mapping>
-	 <mapping mode="user">
-        <prompt string="Ask for this" />
+	 <mapping mode="copy">
+	    <source name = "i2"/>
 	 	<target ref="12" name="i3" />
 	 </mapping>
 	 <mapping mode="error"> 
