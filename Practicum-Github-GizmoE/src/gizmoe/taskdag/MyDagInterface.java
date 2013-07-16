@@ -125,6 +125,21 @@ public interface MyDagInterface {
 	public ArrayList<Integer> startCapabilities();
 	
 	/**
+	 * Efficiently returns all the end capabilities 
+	 * @return An arraylist containing IDs of end capabilities
+	 */
+	public ArrayList<Integer> endCapabilities();
+	
+	/**
+	 * Since finding end capabilities is computationally intensive,
+	 * precompute them so that endCapabilities is efficient. This
+	 * is done only once, and we recommend that you call this method
+	 * yourself right after the dag is created. Otherwise, the endCapabilities
+	 * method will call it automatically.
+	 */
+	public void preComputeEndCapabilities();
+	
+	/**
 	 * Clear all the data in the data structures
 	 * @return success/failure
 	 */

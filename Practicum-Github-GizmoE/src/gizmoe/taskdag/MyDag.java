@@ -25,6 +25,7 @@ public class MyDag implements MyDagInterface{
 	ArrayList<Integer> originalIOID;
 	private int capabilityID = 0;
 	private int ioID = 0;
+	ArrayList<Integer> endCapabList;
 	
 	public MyDag(){
 		internalID = new HashMap<Integer, Integer>();
@@ -35,6 +36,7 @@ public class MyDag implements MyDagInterface{
 		originalIOID = new ArrayList<Integer>();
 		overallInputMap = new ArrayList <Input>();
 		overallOutputMap = new ArrayList <Output>();
+		endCapabList = new ArrayList<Integer>();
 
 	}
 	
@@ -243,6 +245,33 @@ public class MyDag implements MyDagInterface{
 		}
 		return next;
 	}
+	
+	public void preComputeEndCapabilities(){
+		if(!endCapabList.isEmpty()){
+			return;
+		}
+		Boolean isEnd = true;
+		for(int i = 1; i<connectMap.size(); i++){
+			isEnd = true;
+			for(int j = 0; j<connectMap.get(i).size(); j++ ){
+				if(connectMap.get(i).get(j)){
+					isEnd = false;
+					break;
+				}
+			}
+			if(isEnd){
+				endCapabList.add(capabilityMap.get(i).id);
+			}
+		}
+	}
+	
+	public ArrayList<Integer> endCapabilities(){
+		if(!endCapabList.isEmpty()){
+			this.preComputeEndCapabilities();
+		}
+		return endCapabList;
+	}
+	
 	
 	@Override
 	public ArrayList<Integer> joinToBecome(int id){

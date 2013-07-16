@@ -110,6 +110,11 @@ public class ResolveDag {
 //			System.out.println(startid);
 //		}
 		
+		/*****************************
+		 * Precompute end IDs
+		 *****************************/
+		taskdag.preComputeEndCapabilities();
+		
 		return taskdag;
 		
 	}
