@@ -83,6 +83,7 @@ public class CapabilitySpawner implements Runnable {
         }
         connection.stop();
         connection.close();	
+        System.out.println("Capability Spawner Exiting.");
 		}catch (JMSException e) {
 			e.printStackTrace();
 		}

@@ -10,7 +10,6 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
@@ -32,18 +31,19 @@ import gizmoe.taskdag.Output;
 public class TaskExecutor {
 
 	static boolean startingCapabilities = true;
-	static boolean exit = false;
+	volatile static boolean exit = false;
 	static MyDag taskdag;
 	static MessageConsumer getQueue;
 	static MessageProducer putQueue;
 	static Session session;
 	static Connection connection;
 	static ConcurrentHashMap <Integer, MessageProducer> capabilityMessageMap = new ConcurrentHashMap<Integer, MessageProducer>();
-	 static ConcurrentHashMap <Integer, ObjectMessage> preparedMessages = new ConcurrentHashMap<Integer, ObjectMessage>();
-	 static ConcurrentHashMap <Integer, MessageConsumer> capabilityReplyMap = new ConcurrentHashMap<Integer, MessageConsumer>();
-	 static ArrayList<Integer> capabilityExecuteQueue = new ArrayList<Integer>();
-	 static ArrayList<Integer> capabilitiesFinished = new ArrayList<Integer>();
-	 static ConcurrentHashMap <Integer, Object> outputCache = new ConcurrentHashMap<Integer, Object>();
+	static ConcurrentHashMap <Integer, ObjectMessage> preparedMessages = new ConcurrentHashMap<Integer, ObjectMessage>();
+	static ConcurrentHashMap <Integer, MessageConsumer> capabilityReplyMap = new ConcurrentHashMap<Integer, MessageConsumer>();
+	static ArrayList<Integer> capabilityExecuteQueue = new ArrayList<Integer>();
+	static ArrayList<Integer> capabilitiesFinished = new ArrayList<Integer>();
+	static ConcurrentHashMap <Integer, Object> outputCache = new ConcurrentHashMap<Integer, Object>();
+	static ArrayList<Integer> endings = new ArrayList<Integer>();
 	public static void main(String[] args) {
 		MyDag testdag = ResolveDag.TaskDagResolver("NewCombo");
 		callback(testdag);
@@ -86,6 +86,10 @@ public class TaskExecutor {
 	public static void execute(){
 		setUpConnection();
 		ArrayList<Input> overallInput = taskdag.getAllOverallInput();
+		endings.addAll(taskdag.endCapabilities());
+//		for(int id : endings){
+//			System.out.println("Endings IDs: "+id);
+//		}
 		Scanner sysin = new Scanner(System.in);
 		for(Input in : overallInput){
 			//System.out.println("ID was:"+taskdag.isMappedTo(in.id).get(0).id);
@@ -95,7 +99,7 @@ public class TaskExecutor {
 				if(in.type.equals("int")){
 					outputCache.put(io.id, Integer.parseInt(inputLine));
 				}else if(in.type.equals("string")){
-					outputCache.put(io.id, sysin.nextLine());
+					outputCache.put(io.id, inputLine);
 				}else if(in.type.equals("boolean")){
 					outputCache.put(io.id, Boolean.parseBoolean(inputLine));
 				}else if(in.type.equals("double")){
@@ -118,7 +122,7 @@ public class TaskExecutor {
 		while(!exit){
 		}
 		System.out.println("Exiting Task Executor");
-		//exitCleanly();
+		exitCleanly();
 		
 	}
 	
@@ -145,8 +149,14 @@ public class TaskExecutor {
 		System.out.println("Back in trynextCap!!");
 		boolean cannotExecute = false;
 		if(taskdag.nextCapabilities(id) == null || taskdag.nextCapabilities(id).size()==0){
-			System.out.println("TaskExecutor :: Exiting baby!!!");
-			exit = true;
+			if(endings.contains(id)){
+				System.out.println("TaskExecutor :: Found an end capability");
+				endings.remove(endings.indexOf(id));
+			}
+			if(endings.size() == 0){
+				exit = true;
+			}
+			return;
 		}
 		for(int toStart : taskdag.nextCapabilities(id)){
 			if(!capabilityExecuteQueue.contains(toStart)){
@@ -188,6 +198,30 @@ public class TaskExecutor {
 	
 	private static ObjectMessage createCapabilityInputMessage(int id){
 		Input[] inputs = taskdag.getCapabilityInputs(id);
+		Scanner scan = new Scanner(System.in);
+		for(Input in : inputs){
+			for(IOPair io : taskdag.isMappingOf(in.id)){
+				if(io.id == 1 || io.id == 0){
+					System.out.println("TaskExecutor::USER INPUT REQUIRED:: Capability "
+							+taskdag.getCapabilityName(id)+" needs input "+in.name+
+							" of type "+in.type+">>");
+					String inputLine = scan.nextLine();
+					if(in.type.equals("int")){
+						outputCache.put(in.id, Integer.parseInt(inputLine));
+					}else if(in.type.equals("string")){
+						outputCache.put(in.id, inputLine);
+					}else if(in.type.equals("boolean")){
+						outputCache.put(in.id, Boolean.parseBoolean(inputLine));
+					}else if(in.type.equals("double")){
+						outputCache.put(in.id, Double.parseDouble(inputLine));
+					}else if(in.type.equals("float")){
+						outputCache.put(in.id, Float.parseFloat(inputLine));
+					}else{
+						System.err.println("Unrecognized input type!!");
+					}
+				}
+			}
+		}
 		ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
 		for(Input in : inputs){
 			if(!outputCache.containsKey(in.id)){
@@ -294,6 +328,7 @@ public class TaskExecutor {
 	
 	public static void exitCleanly(){
         try {
+			putQueue.send(session.createTextMessage("Kill message"));
 			connection.stop();
 	        connection.close();
 		} catch (JMSException e) {
