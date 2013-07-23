@@ -48,7 +48,7 @@ public class CapabilitySpawner implements Runnable {
         	// By default this call is blocking, which means it will wait
         	// for a message to arrive on the queue.
         	Message message = consumer.receive();
-			System.out.println("CapabilitySpawner:: recieved start message!");
+			//System.out.println("CapabilitySpawner:: recieved start message!");
         	// There are many types of Message and TextMessage
         	// is just one of them. Producer sent us a TextMessage
         	// so we must cast to it to get access to its .getText()
@@ -61,9 +61,9 @@ public class CapabilitySpawner implements Runnable {
         			int hash = searchAndExecuteCapability(spawnMessage.getCapabilities().get(id));
         			if(hash!=-1){
         				reply.put(id, "thread"+hash);
-        				System.out.println("CapabilitySpawner:: Starting id "+id+" thread: thread"+hash);
+//        				System.out.println("CapabilitySpawner:: Starting id "+id+" thread: thread"+hash);
         			}else{
-        				System.err.println("CapabilitySpawner was unable to create a thread for capability "+spawnMessage.getCapabilities().get(id));
+//        				System.err.println("CapabilitySpawner was unable to create a thread for capability "+spawnMessage.getCapabilities().get(id));
         			}
         		}
         	}else{
@@ -72,7 +72,7 @@ public class CapabilitySpawner implements Runnable {
         	SpawnMessage replyMessage = new SpawnMessage(reply);
         	ObjectMessage replyM = session.createObjectMessage(replyMessage);
         	producer.send((Message) replyM);
-			System.out.println("CapabilitySpawner:: Sent start message!");
+//			System.out.println("CapabilitySpawner:: Sent start message!");
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -83,7 +83,7 @@ public class CapabilitySpawner implements Runnable {
         }
         connection.stop();
         connection.close();	
-        System.out.println("Capability Spawner Exiting.");
+//        System.out.println("Capability Spawner Exiting.");
 		}catch (JMSException e) {
 			e.printStackTrace();
 		}

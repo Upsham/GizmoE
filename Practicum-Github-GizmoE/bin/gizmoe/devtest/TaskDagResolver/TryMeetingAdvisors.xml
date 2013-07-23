@@ -74,12 +74,12 @@
 	 </mapping>
 
 	 <mapping mode="user">
-        <prompt string="Ask for this 1" />
+        <prompt string="The previous name entered was not an advisor. Please enter the name of an advisor: " />
 	 	<target ref="104" name="parameter" />
 	 </mapping>
 	 
 	 <mapping mode="user">
-        <prompt string="Ask for this 2" />
+        <prompt string="The previous advisor was busy. Please enter the name of another advisor: " />
 	 	<target ref="105" name="parameter" />
 	 </mapping>
 	 

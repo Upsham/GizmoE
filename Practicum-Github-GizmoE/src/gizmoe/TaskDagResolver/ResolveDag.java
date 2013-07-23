@@ -133,6 +133,7 @@ public class ResolveDag {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	private static void cleanUp(){
 		for(String name: cleanUpFiles){
 			try {

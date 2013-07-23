@@ -18,7 +18,7 @@ public class LookUpEmail extends CapabilityBase{
 			 * Input Section
 			 */
 			name = (String) inputs.get("name");
-			System.out.println(tag+"Received input name = "+name);
+//			System.out.println(tag+"Received input name = "+name);
 			
 			/*
 			 * Operation Section
@@ -45,10 +45,11 @@ public class LookUpEmail extends CapabilityBase{
 		 * Output Section
 		 */
 		if(found == false){
-			System.out.println(tag+"Sending output emailNotFound = "+!found);
+//			System.out.println(tag+"Sending output emailNotFound = "+!found);
 			outputs.put("emailNotFound",!found);		
 		}else{
-			System.out.println(tag+"Sending output email = "+email);
+			System.out.println(tag+name+" is a known advisor with email id "+email);
+//			System.out.println(tag+"Sending output email = "+email);
 			outputs.put("email",email);		
 		}
 		return outputs;

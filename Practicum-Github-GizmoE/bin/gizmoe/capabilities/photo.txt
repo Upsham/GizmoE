@@ -1,2 +1,2 @@
-upsham;Upsham's Photo Location
-bradley;Bradley's Photo Location
+upsham;/Users/upsham/Pictures/upsham.jpg
+bradley;/usr/Schmerl/pic.cool

@@ -17,7 +17,7 @@ public class FindBusy extends CapabilityBase{
 			 * Input Section
 			 */
 			handle = (String) inputs.get("queryHandle");
-			System.out.println(tag+"Received input queryHandle = "+handle);
+//			System.out.println(tag+"Received input queryHandle = "+handle);
 			
 			/*
 			 * Operation Section
@@ -25,7 +25,7 @@ public class FindBusy extends CapabilityBase{
 			InputStream stream = FindBusy.class.getResourceAsStream("calendar.txt");
 			Scanner in = new Scanner(stream);
 			while(in.hasNext()){
-				System.out.println(tag+"In Loop");
+//				System.out.println(tag+"In Loop");
 				String[] line = in.nextLine().split(";");
 				String candidate = line[0];
 				if(candidate.equalsIgnoreCase(handle)){
@@ -36,10 +36,11 @@ public class FindBusy extends CapabilityBase{
 					 */
 					
 					if(status.equalsIgnoreCase("y")){
-						System.out.println(tag+"Sending output available = "+line[2]);
-						outputs.put("available", handle);
+//						System.out.println(tag+"Sending output available = "+line[2]);
+						System.out.println(tag+handle+" is currently available at "+line[2]);
+						outputs.put("available", line[2]);
 					}else{
-						System.out.println(tag+"Sending output notAvailable = "+true);
+//						System.out.println(tag+"Sending output notAvailable = "+true);
 						outputs.put("notAvailable", true);
 					}
 					return outputs;
@@ -48,7 +49,7 @@ public class FindBusy extends CapabilityBase{
 		}else{
 			System.err.println(tag+"Input queryHandle not found");
 		}
-		System.out.println(tag+"Sending empty output");
+//		System.out.println(tag+"Sending empty output");
 		return outputs;
 	}
 

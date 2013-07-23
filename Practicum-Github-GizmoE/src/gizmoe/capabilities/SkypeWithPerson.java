@@ -15,10 +15,11 @@ public class SkypeWithPerson extends CapabilityBase{
 			 * Input Section
 			 */
 			name = (String) inputs.get("name");
-			System.out.println(tag+"Received input name = "+name);
+//			System.out.println(tag+"Received input name = "+name);
 			
 			try {
-				Thread.sleep(1000);
+				System.out.println(tag+"Now Skyping with "+name);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -30,7 +31,8 @@ public class SkypeWithPerson extends CapabilityBase{
 		}else{
 			System.err.println(tag+"Input name not found");
 		}
-		System.out.println(tag+"Skyped with = "+name);
+//		System.out.println(tag+"Skyped with = "+name);
+		System.out.println(tag+"Finished skyping with "+name);
 		return outputs;
 	}
 

@@ -1,5 +1,8 @@
 package gizmoe.taskexecutor;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -46,8 +49,36 @@ public class TaskExecutor {
 	static ArrayList<Integer> endings = new ArrayList<Integer>();
 	static int semaphore = 0;
 	public static void main(String[] args) {
-		MyDag testdag = ResolveDag.TaskDagResolver("TryMeetingAdvisors");
-		callback(testdag);
+		System.out.println("/*******************************************");
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("Welcome to the Task Executor Demo Console");
+		int i = 0;
+		Boolean invalid;
+		do{
+			System.out.print("Please type 1 to run MeetAdvisor, or 2 to run TryMeetAdvisors: ");
+			invalid = false;
+			try {
+				i = Integer.parseInt(br.readLine());
+			}catch (IOException e) {
+				e.printStackTrace();
+			}catch(NumberFormatException nfe){
+				System.err.println("Invalid Format! Please enter 1 or 2 only!");
+				invalid = true;
+			}
+			
+			if(i!=1 && i!=2){
+				System.err.println("Please only type 1 or 2!");
+				invalid = true;
+			}
+		}while(invalid);
+		System.out.println("*******************************************/");
+		if(i==1){
+			MyDag testdag = ResolveDag.TaskDagResolver("MeetAdvisor");
+			callback(testdag);
+		}else{
+			MyDag testdag = ResolveDag.TaskDagResolver("TryMeetingAdvisors");
+			callback(testdag);
+		}
 		Thread t1 = new Thread(new CapabilitySpawner());
 		t1.start();
 		execute();
@@ -124,7 +155,7 @@ public class TaskExecutor {
 			}
 			if(cannotStart){
 				capabilityExecuteQueue.add(id);
-				System.err.println("Did not start capability "+taskdag.getCapabilityName(id)+", will wait");
+//				System.err.println("Did not start capability "+taskdag.getCapabilityName(id)+", will wait");
 			}else{
 				map.put(id, taskdag.getCapabilityName(id));
 			}
@@ -134,14 +165,24 @@ public class TaskExecutor {
 		//System.out.println("TaskExecutor:: Created queues!!");
 		while(!exit){
 		}
-		System.out.println("Exiting Task Executor");
+		System.out.println("Bye!");
 		exitCleanly();
 		
 	}
 	
+	private static void handleErrorOutput(String error){
+		if(error.equals("emailNotFound")){
+			System.err.println("Task Executor :: Person was not listed in advisor directory (email not found)");
+		}else if(error.equals("notAvailable")){
+			System.err.println("Task Executor :: Advisor is currently listed as busy in the calendar");
+		}else if(error.equals("photoNotFound")){
+			System.err.println("Task Executor :: Advisor's photo was not found!");
+		}	
+	}
+	
 	public static void registerOutputs(int id, ConcurrentHashMap<String, Object> outputMap){
 		// get the outputs from actual capability using callback, store in local cache
-		System.out.println("Back in TE!!");
+//		System.out.println("Back in TE!!");
 		capabilitiesFinished.add(id);
 		semaphore--;
 		Output[] outputs = taskdag.getCapabilityOutputs(id);
@@ -151,12 +192,13 @@ public class TaskExecutor {
 				for(IOPair mapping : mappings){
 					//for(Output finalOut : taskdag.getAllOverallOutput()){
 						if(mapping.mode.equals("error")){
-							System.err.println("TaskExecutor:: Found an ERROR output!");
-							System.err.println("TaskExecutor:: Output "+out.name+" = "+outputMap.get(out.name));
+//							System.err.println("TaskExecutor:: Found an ERROR output!");
+//							System.err.println("TaskExecutor:: Output "+out.name+" = "+outputMap.get(out.name));
+							handleErrorOutput(out.name);
 							id = -1;
 						}
 					//}
-					System.out.println("TaskExecutor :: ID: "+out.id+" name: "+out.name+" mapping ID: "+mapping.id);
+//					System.out.println("TaskExecutor :: ID: "+out.id+" name: "+out.name+" mapping ID: "+mapping.id);
 					if(!outputCache.containsKey(mapping.id)){
 						outputCache.put(mapping.id, outputMap.get(out.name));
 					}else{
@@ -169,13 +211,13 @@ public class TaskExecutor {
 	}
 	
 	private static void tryNextCapability(int id){
-		System.out.println("Back in trynextCap!!");
+//		System.out.println("Back in trynextCap!!");
 		boolean allDone = true;
 		boolean cannotExecute = false;
 		if(id>0){
 			if(taskdag.nextCapabilities(id) == null || taskdag.nextCapabilities(id).size()==0){
 				if(endings.contains(id)){
-					System.out.println("TaskExecutor :: Found an end capability");
+//					System.out.println("TaskExecutor :: Found an end capability");
 					endings.remove(endings.indexOf(id));
 				}
 				if(endings.size() == 0){
@@ -207,7 +249,7 @@ public class TaskExecutor {
 						toRemove.add(capID);
 						allDone = false;
 					}else{
-						System.err.println("Did not start capability "+taskdag.getCapabilityName(capID)+", will wait");
+//						System.err.println("Did not start capability "+taskdag.getCapabilityName(capID)+", will wait");
 					}
 				}else{
 					System.out.println("Reached a cannot execute state here!! ID: "+capID);
@@ -220,7 +262,7 @@ public class TaskExecutor {
 						toRemove.add(capID);
 						allDone = false;
 					}else{
-						System.err.println("Did not start capability "+taskdag.getCapabilityName(capID)+" with ID "+capID+", will wait");
+//						System.err.println("Did not start capability "+taskdag.getCapabilityName(capID)+" with ID "+capID+", will wait");
 					}
 			}
 		}
@@ -247,11 +289,12 @@ public class TaskExecutor {
 		if(onlyUserLeft){
 			for(Input in : inputs){
 				for(IOPair io : taskdag.isMappingOf(in.id)){
-					System.out.println("TaskExecutor:: "+taskdag.getCapabilityName(id)+" has input "+in.name+" mapped with mode "+io.mode);
+//					System.out.println("TaskExecutor:: "+taskdag.getCapabilityName(id)+" has input "+in.name+" mapped with mode "+io.mode);
 					if(io.id == 1 || io.id == 0){
-						System.out.println("TaskExecutor::USER INPUT REQUIRED:: Capability "
-								+taskdag.getCapabilityName(id)+" needs input "+in.name+
-								" of type "+in.type+">>");
+//						System.out.println("TaskExecutor::USER INPUT REQUIRED:: Capability "
+//								+taskdag.getCapabilityName(id)+" needs input "+in.name+
+//								" of type "+in.type+">>");
+						System.out.print(io.mode.split("::")[1]);
 						String inputLine = scan.nextLine();
 						if(in.type.equals("int")){
 							outputCache.put(in.id, Integer.parseInt(inputLine));
@@ -273,7 +316,7 @@ public class TaskExecutor {
 		ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
 		for(Input in : inputs){
 			if(!outputCache.containsKey(in.id)){
-				System.err.println("Task Executor :: Input "+in.id+" has not been registered yet in TE. Will wait.");
+//				System.err.println("Task Executor :: Input "+in.id+" has not been registered yet in TE. Will wait.");
 				return null;
 			}else{
 				input.put(in.name, outputCache.get(in.id));
@@ -289,7 +332,7 @@ public class TaskExecutor {
 	}
 	
 	private static void startValidCapability(int id){
-		System.out.println("Back in startValid!!");
+//		System.out.println("Back in startValid!!");
 		ConcurrentHashMap <Integer, String> map = new ConcurrentHashMap<Integer, String>();
 		map.put(id, taskdag.getCapabilityName(id));
 		startCapabilities(map);
@@ -343,7 +386,7 @@ public class TaskExecutor {
 		createCapabilityMessageQueues(capabilityQueues);
 		if(!startingCapabilities){
 			for(int id : capabilityQueues.keySet()){
-				System.out.println("TaskExecutor:: Sending to testing "+capabilityQueues.get(id)+":: "+id);
+//				System.out.println("TaskExecutor:: Sending to testing "+capabilityQueues.get(id)+":: "+id);
 				try {
 					capabilityMessageMap.get(id).send(preparedMessages.get(id));
 				} catch (JMSException e) {
@@ -354,12 +397,12 @@ public class TaskExecutor {
 		}else{
 			startingCapabilities = false;
 			for(int id : capabilityMessageMap.keySet()){
-				System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+":: "+id);
+//				System.out.println("TaskExecutor:: Sending to "+capabilityQueues.get(id)+":: "+id);
 				ConcurrentHashMap<String, Object> input = new ConcurrentHashMap<String, Object>();
 				Input[] inputs = taskdag.getCapabilityInputs(id);
 				for(Input in : inputs){
 					if(!outputCache.containsKey(in.id)){
-						System.err.println("Task Executor :: Input "+in.id+"has not been registered yet in TE for start capabilities! Fatal!");
+//						System.err.println("Task Executor :: Input "+in.id+"has not been registered yet in TE for start capabilities! Fatal!");
 					}else{
 						input.put(in.name, outputCache.get(in.id));
 					}
@@ -390,7 +433,7 @@ public class TaskExecutor {
 			Class<?> c = Class.forName(name);
 			Constructor<?> constructor = c.getConstructor();
 			Object o = constructor.newInstance();
-			System.out.println(o.hashCode());
+//			System.out.println(o.hashCode());
 			Thread t1 = new Thread((Runnable) o);
 			t1.run();
 			System.out.println("magic!");

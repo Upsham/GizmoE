@@ -18,7 +18,7 @@ public class LookUpPhoto extends CapabilityBase{
 			 * Input Section
 			 */
 			name = (String) inputs.get("name");
-			System.out.println(tag+"Received input name = "+name);
+//			System.out.println(tag+"Received input name = "+name);
 			
 			/*
 			 * Operation Section
@@ -42,10 +42,11 @@ public class LookUpPhoto extends CapabilityBase{
 		 * Output Section
 		 */
 		if(found == false){
-			System.out.println(tag+"Sending output photoNotFound = "+found);
+//			System.out.println(tag+"Sending output photoNotFound = "+found);
 			outputs.put("photoNotFound",found);		
 		}else{
-			System.out.println(tag+"Sending output photo = "+photo);
+//			System.out.println(tag+"Sending output photo = "+photo);
+			System.out.println(tag+name+"'s photo was found! It is at "+photo+" and is ready for display!");
 			outputs.put("photo",photo);		
 		}
 		return outputs;
