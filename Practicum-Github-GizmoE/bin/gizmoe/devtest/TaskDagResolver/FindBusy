@@ -1,0 +1,3 @@
+Input;queryHandle;String
+Output;available;String
+Output;notAvailable;Boolean

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<task name="See Appearance Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="PersonName" type="String"/>
+  </inputs>
+  
+  <outputs>
+	<outputGroup status="error">
+	  <output name="photoNotAvailable" type="Boolean"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+		 <step name="LookUpPhoto" id="11"/> <!-- name should be the name in the database -->
+		 <step name="DisplayPhoto" id="12"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "PersonName"/>
+		<target ref="11" name="name"/>
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="11" name="photo"/>
+		<target ref="12" name="queryHandle" />
+	 </mapping>
+	 <mapping mode="error">
+		<source ref="11" name="photoNotFound"/>
+		<target name="photoNotAvailable" />
+	 </mapping>
+	 
+  </data>
+</task>

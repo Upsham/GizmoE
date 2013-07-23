@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<task name="Go Talk to Person Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="location" type="String"/>
+     <input name="personName" type="String"/>
+  </inputs>
+  
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+		 <step name="GotoLocation" id="9"/> <!-- name should be the name in the database -->
+		 <step name="SkypeWithPerson" id="10"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "personName"/>
+		<target ref="10" name="name"/>
+	 </mapping>
+	 <mapping mode="copy">
+	    <source name = "location"/>
+		<target ref="9" name="location" />
+	 </mapping>
+	 
+  </data>
+</task>

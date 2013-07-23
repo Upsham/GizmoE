@@ -2,14 +2,25 @@ package gizmoe.TaskDagResolver;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+
 import gizmoe.taskdag.*;
+
+import org.apache.commons.io.FileUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,11 +31,14 @@ public class ResolveDag {
 	/**
 	 * @param args
 	 */
+	private static int fileManip = 200;
 	private static MyDag taskdag = new MyDag();
 	private static HashMap<Integer, Capability> idMap = new HashMap<Integer, Capability>();
 	private static HashMap<Integer, HashMap<String, ArrayList<Integer>>> resolveMap = new HashMap<Integer, HashMap<String, ArrayList<Integer>>>();
 	private static int ioidcounter = 2;
 	private static HashMap<String, Integer> overallIOMap = new HashMap<String, Integer>();
+	private static ArrayList<String> cleanUpFiles = new ArrayList<String>();
+	private static ArrayList<String> seenFiles = new ArrayList<String>();
 	/**********************************************************************************************************
 	 * Only for BASIC TESTING (during developmeny). Please use the unit test method in devtest instead
 	 **********************************************************************************************************/
@@ -114,18 +128,79 @@ public class ResolveDag {
 		 * Precompute end IDs
 		 *****************************/
 		taskdag.preComputeEndCapabilities();
-		
+		//cleanUp();
 		return taskdag;
 		
 	}
 	
+	@SuppressWarnings("unused")
+	private static void cleanUp(){
+		for(String name: cleanUpFiles){
+			try {
+				FileUtils.forceDelete(new File(name));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private static String handleDuplicates(DocumentBuilderFactory factory, String filename){
+		DocumentBuilder builder;
+		String content = null;
+		try {
+			builder = factory.newDocumentBuilder();
+
+			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+			Document doc = builder.parse(taskLoc);
+			//System.out.println("Root element :" + doc.getDocumentElement().getAttribute("name"));
+
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xpath = xPathFactory.newXPath();
+
+			XPathExpression xPathExpression = xpath.compile("//step");
+			NodeList steps = (NodeList) xPathExpression.evaluate(doc, XPathConstants.NODESET);
+			ArrayList<String> idsToReplace = new ArrayList<String>();
+			for(int i = 0; i< steps.getLength(); i++){
+				int id = Integer.parseInt(steps.item(i).getAttributes().getNamedItem("id").getNodeValue());
+				idsToReplace.add(id+"");
+			}
+//			newNameToReturn = filename+fileManip++;
+//			String newName = "src/gizmoe/devtest/TaskDagResolver/"+newNameToReturn+".xml";
+//			File f = new File(newName);
+			content = FileUtils.readFileToString(new File("src/gizmoe/devtest/TaskDagResolver/"+filename+".xml"));
+			for(String replace : idsToReplace){
+				int newid = Integer.parseInt(replace) + fileManip;
+				content = content.replaceAll(replace, newid+"");
+			}
+			//FileUtils.writeStringToFile(f, content);
+//			System.out.println("Writing to file "+newName);
+//			cleanUpFiles.add(newName);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (XPathExpressionException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		fileManip = fileManip+200;
+		return content;
+	}
 	
 	private static HashMap<String, ArrayList<Integer>> resolve(String filename, DocumentBuilderFactory factory, boolean isRoot){
 		HashMap<String, ArrayList<Integer>> mappedID = new HashMap<String, ArrayList<Integer>>();
 		try {
-			
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+			InputStream taskLoc;
+			if(seenFiles.contains(filename)){
+				filename = handleDuplicates(factory, filename);
+				taskLoc = new ByteArrayInputStream(filename.getBytes());;
+			}else{
+				seenFiles.add(filename);
+				taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+			}
 			Document doc = builder.parse(taskLoc);
 			//System.out.println("Root element :" + doc.getDocumentElement().getAttribute("name"));
 
@@ -519,7 +594,9 @@ public class ResolveDag {
 							if(idArray.size()==1){
 								taskdag.mapIO(overallIOMap.get(fromIOName), idArray.get(0), mode);
 							}else{
-								throw new Exception("Overall IO cannout be mapped correctly as one to many mapping is being tried");
+								for(int idtoconnect : idArray){
+									taskdag.mapIO(overallIOMap.get(fromIOName), idtoconnect, mode);
+								}
 							}
 						}
 						
@@ -550,7 +627,7 @@ public class ResolveDag {
 						if(idMap.containsKey(fromCapID)){
 							idArray.add(idMap.get(fromCapID).ioLookup.get(fromIOName));
 						}else{
-							if(resolveMap.get(fromCapID).get(fromIOName).size()>1){
+							if(resolveMap.get(fromCapID).get(fromIOName).size()>1){							
 								throw new Exception("Trying to map more than one output to one task output");
 							}else{
 								idArray.add(resolveMap.get(fromCapID).get(fromIOName).get(0));
@@ -633,7 +710,6 @@ public class ResolveDag {
 		//Convert to lookup in capability database later
 		ArrayList<Output> outputs =  new ArrayList<Output>();
 		ArrayList<Input> inputs =  new ArrayList<Input>();
-
 		InputStream input = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+name);
 		Scanner in = new Scanner(input);
 		while(in.hasNext()){
@@ -649,11 +725,10 @@ public class ResolveDag {
 		
 	}
 	private static boolean isCapability(String candidate){
-		if(candidate.startsWith("Task")){
-			return false;
-		}else{
+		if(ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+candidate) != null){
 			return true;
 		}
+		return false;
 	}
 	
 	@SuppressWarnings("unused")

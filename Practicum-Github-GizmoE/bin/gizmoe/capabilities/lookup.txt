@@ -1,0 +1,3 @@
+upsham;upsham@gmail.com
+bradley;schmerl+@cmu.edu
+david;garlan@cs.cmu.edu

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<task name="Find if Known Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="PersonName" type="String"/>
+  </inputs>
+  
+  <outputs>
+    <outputGroup status="success">
+	  <output name="CurrentLocation" type="String"/>
+	</outputGroup>
+	<outputGroup status="error">
+	  <output name="emailNotFound" type="Boolean"/>
+	  <output name="notFree" type="Boolean"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+		 <step name="LookUpEmail" id="7"/> <!-- name should be the name in the database -->
+		 <step name="FindBusy" id="8"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "PersonName"/>
+		<target ref="7" name="name"/>
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="7" name="email"/>
+		<target ref="8" name="queryHandle" />
+	 </mapping>
+	 <mapping mode="copy">
+		<target ref="8" name="available"/>
+		<source name = "CurrentLocation"/>
+	 </mapping>
+	 <mapping mode="error">
+		<source ref="7" name="emailNotFound"/>
+		<target name="emailNotFound" />
+	 </mapping>
+	 <mapping mode="error">
+	    <source ref="8" name="notAvailable"/>
+		<target name = "notFree" />
+	 </mapping>
+	 
+  </data>
+</task>

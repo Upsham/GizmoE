@@ -18,9 +18,9 @@ public class CapabilityMessageListener implements MessageListener{
                 	@SuppressWarnings("unchecked")
 					ConcurrentHashMap<String, Object> output = (ConcurrentHashMap<String, Object>) inMsg.getObject();
                 	//int toPrint = (Integer) output.get("out");
-                	for(Object toPrint : output.values()){
-                		System.out.println("TaskExecutor:: "+queue+" gave me:: "+(Integer)toPrint);
-                	}
+//                	for(Object toPrint : output.values()){
+//                		System.out.println("TaskExecutor:: "+queue+" gave me:: "+toPrint);
+//                	}
                 	TaskExecutor.registerOutputs(id, output);
                 }
             }

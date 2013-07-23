@@ -4,7 +4,7 @@
   <inputs>
      <input name="i1" type="int"/>
 	 <input name="i2" type="int"/>
-	 <input name="i3" type="int" default="1"/>
+	 <input name="i3" type="int"/>
   </inputs>
   
   <outputs>
