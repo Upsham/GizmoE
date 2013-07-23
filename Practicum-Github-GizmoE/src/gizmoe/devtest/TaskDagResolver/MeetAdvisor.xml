@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<task name="Find Advisor Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="AdvisorName" type="String"/>
+  </inputs>
+  
+  <outputs>
+	<outputGroup status="error">
+	  <output name="AdvisorNotFound" type="Boolean"/>
+	  <output name="AdvisorNotFree" type="Boolean"/>
+	  <output name="AdvisorPhotoNotAvailable" type="Boolean"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+		 <step name="FindIfKnown" id="2"/> <!-- name should be the name in the database -->
+		 <flow type="parallel">
+		   <step name="SeeAppearance" id="3"/>
+		   <step name="GoTalkToPerson" id="4"/>
+		 </flow>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "AdvisorName"/>
+		<target ref="2" name="PersonName"/>
+	 </mapping>
+	 <mapping mode="copy">
+	    <source name = "AdvisorName"/>
+		<target ref="3" name="PersonName"/>
+	 </mapping>
+	 <mapping mode="copy">
+	    <source name = "AdvisorName"/>
+		<target ref="4" name="personName"/>
+	 </mapping>
+	 <mapping mode="pipe">
+		<source ref="2" name="CurrentLocation"/>
+		<target ref="4" name="location" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="2" name="emailNotFound"/>
+	 	<target name="AdvisorNotFound" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="2" name="notFree"/>
+	 	<target name="AdvisorNotFree" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="3" name="photoNotAvailable"/>
+	 	<target name="AdvisorPhotoNotAvailable" />
+	 </mapping>
+	 
+  </data>
+</task>
