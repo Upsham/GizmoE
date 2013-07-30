@@ -4,26 +4,26 @@ import java.io.InputStream;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class LookUpPhoto extends CapabilityBase{
+public class LookUpPhoto extends DemoBaseCapability{
 
-	private static final long serialVersionUID = 1L;
 	private final String tag = "LookUpPhoto, thread"+this.hashCode()+":: ";
-	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
-		ConcurrentHashMap<String, Object> outputs = new ConcurrentHashMap<String, Object>();
+	private ConcurrentHashMap<String, Object> ioMap;
+	public void run() {
 		String name = null, photo = null;
 		Boolean found = false;
-		if(inputs.containsKey("name")){
+		if(ioMap.containsKey("name")){
 			/*
 			 * Input Section
 			 */
-			name = (String) inputs.get("name");
+			name = (String) ioMap.get("name");
+			System.out.println(tag+"Trying to get "+name+"'s photo from database.");
+
 //			System.out.println(tag+"Received input name = "+name);
 			
 			/*
 			 * Operation Section
 			 */
-			InputStream stream = LookUpPhoto.class.getResourceAsStream("photo.txt");
+			InputStream stream = LookUpPhoto.class.getResourceAsStream("/gizmoe/mockdatabase/photo.txt");
 			Scanner in = new Scanner(stream);
 			while(in.hasNext()){
 				String[] line = in.nextLine().split(";");
@@ -38,18 +38,31 @@ public class LookUpPhoto extends CapabilityBase{
 			System.err.println(tag+"Input name not found");
 		}
 		
+		//Simulate operation
+		if(seconds > 0){
+			try {
+				Thread.sleep(seconds * 1000);
+			} catch (Exception e) {
+				return;
+			}
+		}
+		
 		/*
 		 * Output Section
 		 */
+		ioMap.clear();
 		if(found == false){
 //			System.out.println(tag+"Sending output photoNotFound = "+found);
-			outputs.put("photoNotFound",found);		
+			ioMap.put("photoNotFound",found);		
 		}else{
 //			System.out.println(tag+"Sending output photo = "+photo);
 			System.out.println(tag+name+"'s photo was found! It is at "+photo+" and is ready for display!");
-			outputs.put("photo",photo);		
+			ioMap.put("photo",photo);		
 		}
-		return outputs;
+	}
+	
+	public LookUpPhoto(ConcurrentHashMap<String, Object> inputs) {
+		this.ioMap = inputs;
 	}
 
 }

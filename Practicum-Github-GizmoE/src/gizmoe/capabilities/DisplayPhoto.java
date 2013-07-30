@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 
-public class DisplayPhoto extends CapabilityBase{
+public class DisplayPhoto extends DemoBaseCapability{
 
 	private static class ShowImage extends Panel{
 		private static final long serialVersionUID = 1L;
@@ -32,7 +32,7 @@ public class DisplayPhoto extends CapabilityBase{
 		    g.drawImage(image, 0, 0, null);
 		  }
 
-		  static public void main(String args) throws Exception {
+		  static public void doShow(String args, long secs) throws Exception {
 		    JFrame frame = new JFrame("Photo");
 		    Panel panel = new ShowImage(args);
 		    frame.getContentPane().add(panel);
@@ -45,42 +45,54 @@ public class DisplayPhoto extends CapabilityBase{
 	        frame.setLocation(x, y);
 		    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		    frame.setVisible(true);
-		    try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		    //Simulate operation
+			if(secs > 0){
+				try {
+					Thread.sleep(secs * 1000);
+				} catch (Exception e) {
+				    frame.dispose();
+					return;
+				}
+			}else{
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					frame.dispose();
+					return;
+				}
 			}
 		    frame.dispose();
 		  }
 	}
-	private static final long serialVersionUID = 1L;
 	private final String tag = "DisplayPhoto, thread"+this.hashCode()+":: ";
-	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
-		ConcurrentHashMap<String, Object> outputs = new ConcurrentHashMap<String, Object>();
+	ConcurrentHashMap<String, Object> ioMap;
+
+	public void run() {
 		String handle = null;
-		if(inputs.containsKey("queryHandle")){
+		if(ioMap.containsKey("queryHandle")){
 			/*
 			 * Input Section
 			 */
-			handle = (String) inputs.get("queryHandle");
+			handle = (String) ioMap.get("queryHandle");
+			System.out.println(tag+"Displaying "+handle+"'s photo now.");
 			//System.out.println(tag+"Received input queryHandle = "+handle);
 			
 			/*
 			 * Operation Section
 			 */
 			try {
-				ShowImage.main(handle);
+				ShowImage.doShow(handle, seconds);
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			return outputs;
 		}else{
 			System.err.println(tag+"Input queryHandle not found");
 		}
-		return outputs;
+		ioMap.clear();
+}
+	
+	public DisplayPhoto(ConcurrentHashMap<String, Object> inputs) {
+		this.ioMap = inputs;
 	}
 
 }

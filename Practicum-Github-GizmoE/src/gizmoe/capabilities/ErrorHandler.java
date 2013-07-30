@@ -2,15 +2,13 @@ package gizmoe.capabilities;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ErrorHandler extends CapabilityBase{
+public class ErrorHandler extends DemoBaseCapability{
 
-	private static final long serialVersionUID = 1L;
 	//private final String tag = "ErrorHandler, thread"+this.hashCode()+":: ";
-	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
-		ConcurrentHashMap<String, Object> outputs = new ConcurrentHashMap<String, Object>();
+	ConcurrentHashMap<String, Object> ioMap;
+	public void run() {
 		String pass = null;
-		if(inputs.containsKey("ErrorInput")){
+		if(ioMap.containsKey("ErrorInput")){
 			/*
 			 * Input Section
 			 */
@@ -19,19 +17,32 @@ public class ErrorHandler extends CapabilityBase{
 		}else{
 //			System.err.println(tag+"Input errorInput not found");
 		}
-		if(inputs.containsKey("UserInput")){
-			pass = (String) inputs.get("UserInput");
+		if(ioMap.containsKey("UserInput")){
+			pass = (String) ioMap.get("UserInput");
 //			System.out.println(tag+"Received input UserInput = "+pass);
 		}else{
 //			System.err.println(tag+"Input UserInput not found");
 		}
 		
+		//Simulate operation
+		if(seconds > 0){
+			try {
+				Thread.sleep(seconds * 1000);
+			} catch (Exception e) {
+				return;
+			}
+		}
+		
 		/*
 		 * Output Section
 		 */
-		outputs.put("Passthrough", pass);
+		ioMap.clear();
+		ioMap.put("Passthrough", pass);
 //		System.out.println(tag+"Sending output Passthrough = "+pass);
-		return outputs;
+	}
+	
+	public ErrorHandler(ConcurrentHashMap<String, Object> inputs){
+		this.ioMap = inputs;
 	}
 
 }

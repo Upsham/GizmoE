@@ -4,17 +4,17 @@
   <inputs>
      <!-- inputs with no default value either must be queried from the user,
 	      or connected to outputs from other tasks/capabilities in a composition -->
-     <input id="13" name="i1" type="int"/>
+     <input name="i1" type="int"/>
   </inputs>
   
   <outputs>
     <!-- outputGroups capture all potential outputs from a task, 
     	including success and error cases -->
     <outputGroup status="success">
-	  <output id="14" name="o1" type="int"/>
+	  <output name="o1" type="int"/>
 	</outputGroup>
 	<outputGroup status="error">
-	  <output id="15" name="o2" type="int"/>
+	  <output name="o2" type="int"/>
 	</outputGroup>
   </outputs>
   

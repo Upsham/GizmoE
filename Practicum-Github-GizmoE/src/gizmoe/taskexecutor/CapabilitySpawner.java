@@ -11,27 +11,22 @@ import javax.jms.*;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 public class CapabilitySpawner implements Runnable {
 	// URL of the JMS server. DEFAULT_BROKER_URL will just mean
     // that JMS server is on localhost
     static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
-
     // Name of the queue we will be sending gizmoe.messages to
     private static String subject = "Spawn";
     private static String replysubject = "SpawnReply";
-    
+
 	public void run() {
-		Logger.getRootLogger().setLevel(Level.OFF);
 		 // Getting JMS connection from the server
         ConnectionFactory connectionFactory
             = new ActiveMQConnectionFactory(url);
         Connection connection;
 		try {
 			connection = connectionFactory.createConnection();
-
         connection.start();
         // Creating session for sending gizmoe.messages
         Session session = connection.createSession(false,
@@ -88,11 +83,11 @@ public class CapabilitySpawner implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	private static int searchAndExecuteCapability(String name){
+	private int searchAndExecuteCapability(String name){
 		try {
-			Class<?> c = Class.forName("gizmoe.capabilities."+name);
-			Constructor<?> constructor = c.getConstructor();
-			Object o = constructor.newInstance();
+			Class<?> c = Class.forName("gizmoe.capabilities.CapabilityBase");
+			Constructor<?> constructor = c.getConstructor(String.class);
+			Object o = constructor.newInstance(name);
 			Thread t1 = new Thread((Runnable) o);
 			t1.start();
 			return o.hashCode();

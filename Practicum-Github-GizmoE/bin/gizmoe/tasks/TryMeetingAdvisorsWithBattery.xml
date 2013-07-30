@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<task name="Try Meeting 3 Advisors Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="AdvisorName" type="String"/>
+     <input name="BatteryCapacity" type="int"/>
+  </inputs>
+
+	<outputs>
+	<outputGroup status="error">
+		<output name="FirstAdvisorPhotoNotAvailable" type="Boolean" />
+		<output name="SecondAdvisorNotFound" type="Boolean" />
+		<output name="SecondAdvisorNotFree" type="Boolean" />
+		<output name="SecondAdvisorPhotoNotAvailable" type="Boolean" />
+		<output name="ThirdAdvisorNotFound" type="Boolean" />
+		<output name="ThirdAdvisorNotFree" type="Boolean" />
+		<output name="ThirdAdvisorPhotoNotAvailable" type="Boolean" />
+		<output name="BatteryLow" type="Boolean" />
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="parallel">
+		 <step name="MeetAdvisor" id="101"/> <!-- name should be the name in the database --> 
+		 <step name="RepeatMeetingAdvisor" id="104"/>
+		 <step name="RepeatMeetingAdvisor" id="105"/>
+		 <step name="BatteryDemoTask" id="40"/>
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "AdvisorName"/>
+		<target ref="101" name="AdvisorName"/>
+	 </mapping>
+	 <mapping mode="error">
+	    <source ref="101" name="AdvisorNotFound"/>
+		<target ref="104" name="condition"/>
+	 </mapping>
+	 	 <mapping mode="error">
+	    <source ref="101" name="AdvisorNotFree"/>
+		<target ref="105" name="condition"/>
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="101" name="AdvisorPhotoNotAvailable"/>
+	 	<target name="FirstAdvisorPhotoNotAvailable" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="104" name="AdvisorNotFound"/>
+	 	<target name="SecondAdvisorNotFound" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="104" name="AdvisorNotFree"/>
+	 	<target name="SecondAdvisorNotFree" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="104" name="AdvisorPhotoNotAvailable"/>
+	 	<target name="SecondAdvisorPhotoNotAvailable" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="105" name="AdvisorNotFound"/>
+	 	<target name="ThirdAdvisorNotFound" />
+	 </mapping>
+	 <mapping mode="error"> 
+	 	<source ref="105" name="AdvisorNotFree"/>
+	 	<target name="ThirdAdvisorNotFree" />
+	 </mapping>
+	 <mapping mode="error">
+	 	<source ref="105" name="AdvisorPhotoNotAvailable"/>
+	 	<target name="ThirdAdvisorPhotoNotAvailable" />
+	 </mapping>
+
+	 <mapping mode="user">
+        <prompt string="The previous name entered was not an advisor. Please enter the name of an advisor: " />
+	 	<target ref="104" name="parameter" />
+	 </mapping>
+	 
+	 <mapping mode="user">
+        <prompt string="The previous advisor was busy. Please enter the name of another advisor: " />
+	 	<target ref="105" name="parameter" />
+	 </mapping>
+	 
+	  <mapping mode="copy">
+	    <source name = "BatteryCapacity"/>
+		<target ref="40" name="BatteryCapacity"/>
+	 </mapping>
+	 <mapping mode="stop">
+	    <source ref="40" name="BatteryLow"/>
+		<target name = "BatteryLow" />
+	 </mapping>
+	 
+  </data>
+</task>

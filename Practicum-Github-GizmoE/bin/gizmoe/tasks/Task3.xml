@@ -1,20 +1,18 @@
 <?xml version="1.0"?>
-<task name="Task2">
+<task name="Task3">
   <!-- inputs to the task -->
   <inputs>
      <!-- inputs with no default value either must be queried from the user,
 	      or connected to outputs from other tasks/capabilities in a composition -->
-     <input id="18" name="i1" type="int"/>
+     <input name="i1" type="int"/>
   </inputs>
   
   <outputs>
     <!-- outputGroups capture all potential outputs from a task, 
     	including success and error cases -->
     <outputGroup status="success">
-	  <output id="19" name="o1" type="int"/>
-	</outputGroup>
-	<outputGroup status="error">
-	  <output id="20" name="o2" type="int"/>
+	  <output name="o1" type="int"/>
+	  <output name="o2" type="int"/>
 	</outputGroup>
   </outputs>
   
@@ -22,9 +20,9 @@
 	      from the data connections (done in a separate part below)
 		  Rule module will check any consistency -->
     <control>
-	  <flow type="sequence">
-		 <step name="Capability1" id="21"/>
-		 <step name="Task3" id="22"/>
+	  <flow type="parallel">
+		 <step name="Capability3" id="25"/>
+		 <step name="Capability3" id="26"/>
 	  </flow>
   </control>
   
@@ -34,18 +32,18 @@
           This is how data is connected in the workflow -->	 
      <mapping mode="copy">
 	    <source name = "i1"/>
-		<target ref="21" name="i1"/>
+		<target ref="25" name="i1"/>
 	 </mapping>
-	 <mapping mode="pipe">
-		<source ref="21" name="o1"/>
-		<target ref="22" name="i1" />
+	 <mapping mode="copy">
+	    <source name = "i1"/>
+		<target ref="26" name="i1" />
 	 </mapping>
      <mapping mode="copy">
-          <source ref="22" name="o1"/>
+          <source ref="25" name="o1"/>
           <target name="o1" />
      </mapping>
-	 <mapping mode="error">
-		<source ref="22" name="o2"/>
+	 <mapping mode="copy">
+		<source ref="26" name="o1"/>
 		<target name="o2" />
 	 </mapping>
   </data>
