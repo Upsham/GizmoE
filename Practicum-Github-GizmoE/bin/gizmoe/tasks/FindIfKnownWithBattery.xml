@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<task name="Find if Known Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="PersonName" type="String"/>
+     <input name="BatteryCapacity" type="int"/>
+  </inputs>
+  
+  <outputs>
+    <outputGroup status="success">
+	  <output name="CurrentLocation" type="String"/>
+	</outputGroup>
+	<outputGroup status="error">
+	  <output name="emailNotFound" type="Boolean"/>
+	  <output name="notFree" type="Boolean"/>
+	  <output name="BatteryLow" type="Boolean"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="parallel">
+	  	 <step name="BatteryDemoTask" id="40"/>
+		 <step name="FindIfKnown" id="41"/> <!-- name should be the name in the database -->
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "PersonName"/>
+		<target ref="41" name="PersonName"/>
+	 </mapping>
+	 <mapping mode="copy">
+		<target ref="41" name="CurrentLocation"/>
+		<source name = "CurrentLocation"/>
+	 </mapping>
+	 <mapping mode="error">
+		<source ref="41" name="emailNotFound"/>
+		<target name="emailNotFound" />
+	 </mapping>
+	 <mapping mode="error">
+	    <source ref="41" name="notFree"/>
+		<target name = "notFree" />
+	 </mapping>
+	 <mapping mode="copy">
+	    <source name = "BatteryCapacity"/>
+		<target ref="40" name="BatteryCapacity"/>
+	 </mapping>
+	 <mapping mode="stop">
+	    <source ref="40" name="BatteryLow"/>
+		<target name = "BatteryLow" />
+	 </mapping>
+	 
+  </data>
+</task>

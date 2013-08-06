@@ -1,6 +1,8 @@
 package gizmoe.capabilities;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Connection;
@@ -15,18 +17,25 @@ import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public abstract class CapabilityBase implements Runnable, Serializable {
+public class CapabilityBase implements Runnable, Serializable {
     /**
 	 * 
 	 */
+	//final static Logger log = LoggerFactory.getLogger(getClass());	
 	private static final long serialVersionUID = 1L;
 	protected static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
     protected MessageConsumer getQueue;
     protected MessageProducer putQueue;
     protected Connection connection;
-    protected  Session session;
-	public void setUp(){
+    protected Session session;
+    private String name;
+	public CapabilityBase(String capabilityName){
+		this.name = capabilityName;
+		final Logger log = LoggerFactory.getLogger(getClass());	
+		log.info("From capabilitybase");
 		// Getting JMS connection from the server
         ConnectionFactory connectionFactory
             = new ActiveMQConnectionFactory(url);
@@ -60,7 +69,6 @@ public abstract class CapabilityBase implements Runnable, Serializable {
 		}
 	}
 	public void run() {
-		this.setUp();
 		try {
 			Message inMsg = getQueue.receive();
 			if(inMsg instanceof ObjectMessage){
@@ -68,18 +76,59 @@ public abstract class CapabilityBase implements Runnable, Serializable {
 				if(((ObjectMessage) inMsg).getObject() instanceof ConcurrentHashMap<?, ?>){
 					@SuppressWarnings("unchecked")
 					ConcurrentHashMap<String, Object> inputs = (ConcurrentHashMap<String, Object>) ((ObjectMessage) inMsg).getObject();
-					ConcurrentHashMap<String, Object> outputs = body(inputs);
-					ObjectMessage outMsg = session.createObjectMessage(outputs);
+					
+					Class<?> c = Class.forName("gizmoe.capabilities."+name);
+					Constructor<?> constructor = c.getConstructor(ConcurrentHashMap.class);
+					Object o = constructor.newInstance(inputs);
+					Thread t1 = new Thread((Runnable) o);
+					t1.start();
+					
+					while(t1.isAlive()){
+						Message kill = getQueue.receiveNoWait();
+						if(kill!=null){
+							System.out.println("CapabilityBase "+this.hashCode()+"::Killing the thread for "+name);
+							try{
+							t1.interrupt();
+							this.exitCleanly();
+							return;
+							}catch(Exception e){
+								e.printStackTrace();							
+							}
+						}
+					}
+					ObjectMessage outMsg = session.createObjectMessage(inputs);
 					putQueue.send(outMsg);
 					
 				}
+			}else{
+				return;
 			}
 		} catch (JMSException e) {
 			e.printStackTrace();
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InstantiationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InvocationTargetException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		this.exitCleanly();
-
+		return;
 	}
 	
-	public abstract ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs);
 }

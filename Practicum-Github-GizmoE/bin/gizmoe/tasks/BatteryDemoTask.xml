@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<task name="Find if Known Task">
+  <!-- inputs to the task -->
+  <inputs>
+     <input name="BatteryCapacity" type="int"/>
+  </inputs>
+  
+  <outputs>
+  <outputGroup status="error">
+	  <output name="BatteryLow" type="Boolean"/>
+	</outputGroup>
+  </outputs>
+  
+   <!-- Separate the control (i.e., what runs in sequence and parallel)
+	      from the data connections (done in a separate part below)
+		  Rule module will check any consistency -->
+    <control>
+	  <flow type="sequence">
+	  	 <step name="BatteryMonitor" id="30"/>
+		 <step name="GotoLocation" id="31"/> <!-- name should be the name in the database -->
+	  </flow>
+  </control>
+  
+  <data>
+  
+     <!-- separate section that maps the inputs and outputs for this task.
+          This is how data is connected in the workflow -->	 
+     <mapping mode="copy">
+	    <source name = "BatteryCapacity"/>
+		<target ref="30" name="time_in_seconds"/>
+	 </mapping>
+	 <mapping mode="stop">
+		<target ref="30" name="home"/>
+		<source ref="31" name="location"/>
+	 </mapping>
+	 <mapping mode="stop">
+	    <source ref="30" name="lowBattery"/>
+		<target name = "BatteryLow" />
+	 </mapping>
+	 
+  </data>
+</task>

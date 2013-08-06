@@ -2,24 +2,25 @@ package gizmoe.capabilities;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TestCapability extends CapabilityBase{
+public class TestCapability extends DemoBaseCapability{
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
+	ConcurrentHashMap<String, Object> ioMap;
+	public TestCapability(ConcurrentHashMap<String, Object> inputs) {
+		this.ioMap = inputs;
+	}
 	
 	private static int counter = 0;
-	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
+	public void run() {
 		//System.out.println("From TestCapability: thread"+this.hashCode());
-		if(inputs.containsKey("out")){
-			System.out.println("thread"+this.hashCode()+":: Got input:: "+inputs.get("out"));
+		if(ioMap.containsKey("out")){
+			System.out.println("thread"+this.hashCode()+":: Got input:: "+ioMap.get("out"));
 		}
-		ConcurrentHashMap<String, Object> outputs = new ConcurrentHashMap<String, Object>();
 		System.out.println("thread"+this.hashCode()+":: Sending output:: "+counter);
-		outputs.put("out",counter++);
-		return outputs;
+		ioMap.clear();
+		ioMap.put("out",counter++);
 	}
 
 }

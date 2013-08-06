@@ -150,7 +150,7 @@ public class ResolveDag {
 		try {
 			builder = factory.newDocumentBuilder();
 
-			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/tasks/"+filename+".xml");
 			Document doc = builder.parse(taskLoc);
 			//System.out.println("Root element :" + doc.getDocumentElement().getAttribute("name"));
 
@@ -167,7 +167,7 @@ public class ResolveDag {
 //			newNameToReturn = filename+fileManip++;
 //			String newName = "src/gizmoe/devtest/TaskDagResolver/"+newNameToReturn+".xml";
 //			File f = new File(newName);
-			content = FileUtils.readFileToString(new File("src/gizmoe/devtest/TaskDagResolver/"+filename+".xml"));
+			content = FileUtils.readFileToString(new File("src/gizmoe/tasks/"+filename+".xml"));
 			for(String replace : idsToReplace){
 				int newid = Integer.parseInt(replace) + fileManip;
 				content = content.replaceAll(replace, newid+"");
@@ -199,7 +199,7 @@ public class ResolveDag {
 				taskLoc = new ByteArrayInputStream(filename.getBytes());;
 			}else{
 				seenFiles.add(filename);
-				taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+filename+".xml");
+				taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/tasks/"+filename+".xml");
 			}
 			Document doc = builder.parse(taskLoc);
 			//System.out.println("Root element :" + doc.getDocumentElement().getAttribute("name"));
@@ -710,7 +710,7 @@ public class ResolveDag {
 		//Convert to lookup in capability database later
 		ArrayList<Output> outputs =  new ArrayList<Output>();
 		ArrayList<Input> inputs =  new ArrayList<Input>();
-		InputStream input = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+name);
+		InputStream input = ResolveDag.class.getResourceAsStream("/gizmoe/tasks/"+name);
 		Scanner in = new Scanner(input);
 		while(in.hasNext()){
 			String line = in.nextLine();
@@ -725,7 +725,7 @@ public class ResolveDag {
 		
 	}
 	private static boolean isCapability(String candidate){
-		if(ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+candidate) != null){
+		if(ResolveDag.class.getResourceAsStream("/gizmoe/tasks/"+candidate) != null){
 			return true;
 		}
 		return false;
@@ -737,7 +737,7 @@ public class ResolveDag {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(false); // never forget this!
 			DocumentBuilder builder = factory.newDocumentBuilder();
-			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/devtest/TaskDagResolver/"+"NewCombo"+".xml");
+			InputStream taskLoc = ResolveDag.class.getResourceAsStream("/gizmoe/tasks/"+"NewCombo"+".xml");
 			Document doc = builder.parse(taskLoc);
 
 			XPathFactory xPathFactory = XPathFactory.newInstance();

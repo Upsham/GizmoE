@@ -1,0 +1,3 @@
+Input;time_in_seconds;int
+Output;home;String
+Output;lowBattery;Boolean

@@ -4,25 +4,26 @@ import java.io.InputStream;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FindBusy extends CapabilityBase{
+public class FindBusy extends DemoBaseCapability{
 
-	private static final long serialVersionUID = 1L;
-	private final String tag = "FindBusy, thread"+this.hashCode()+":: ";
+	private final String tag = logTag + "FindBusy, thread"+this.hashCode()+":: ";
+	private ConcurrentHashMap<String, Object> ioMap;
 	@Override
-	public ConcurrentHashMap<String, Object> body(ConcurrentHashMap<String, Object> inputs) {
-		ConcurrentHashMap<String, Object> outputs = new ConcurrentHashMap<String, Object>();
+	public void run() {
 		String handle = null, status = null;
-		if(inputs.containsKey("queryHandle")){
+		if(ioMap.containsKey("queryHandle")){
 			/*
 			 * Input Section
 			 */
-			handle = (String) inputs.get("queryHandle");
+			handle = (String) ioMap.get("queryHandle");
+			log.warn(tag+"Querying "+handle+"'s calendar to check availability.");
+			System.out.println(tag+"Querying "+handle+"'s calendar to check availability.");
 //			System.out.println(tag+"Received input queryHandle = "+handle);
 			
 			/*
 			 * Operation Section
 			 */
-			InputStream stream = FindBusy.class.getResourceAsStream("calendar.txt");
+			InputStream stream = FindBusy.class.getResourceAsStream("/gizmoe/mockdatabase/calendar.txt");
 			Scanner in = new Scanner(stream);
 			while(in.hasNext()){
 //				System.out.println(tag+"In Loop");
@@ -30,27 +31,41 @@ public class FindBusy extends CapabilityBase{
 				String candidate = line[0];
 				if(candidate.equalsIgnoreCase(handle)){
 					status = line[1];
+					//Simulate operation
+					if(seconds > 0){
+						try {
+							Thread.sleep(seconds * 1000);
+						} catch (Exception e) {
+							return;
+						}
+					}
 					
 					/*
 					 * Output Section
 					 */
+						if(status.equalsIgnoreCase("y")){
+//							System.out.println(tag+"Sending output available = "+line[2]);
+							log.warn(tag+handle+" is currently available at "+line[2]);
+							System.out.println(tag+handle+" is currently available at "+line[2]);
+							ioMap.clear();
+							ioMap.put("available", line[2]);
+						}else{
+//							System.out.println(tag+"Sending output notAvailable = "+true);
+							ioMap.clear();
+							ioMap.put("notAvailable", true);
+						}
 					
-					if(status.equalsIgnoreCase("y")){
-//						System.out.println(tag+"Sending output available = "+line[2]);
-						System.out.println(tag+handle+" is currently available at "+line[2]);
-						outputs.put("available", line[2]);
-					}else{
-//						System.out.println(tag+"Sending output notAvailable = "+true);
-						outputs.put("notAvailable", true);
-					}
-					return outputs;
 				}
 			}
 		}else{
 			System.err.println(tag+"Input queryHandle not found");
 		}
 //		System.out.println(tag+"Sending empty output");
-		return outputs;
 	}
+	
+	public FindBusy(ConcurrentHashMap<String, Object> inputs) {
+		this.ioMap = inputs;
+	}
+	
 
 }
